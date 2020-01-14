@@ -126,7 +126,8 @@ longnameforillustration
 
 ```{r}
 long_name_for_illustration <- 11
-
+long_name_for_illustration
+long_name_for_illustration
 ```
 
 ### Comments
