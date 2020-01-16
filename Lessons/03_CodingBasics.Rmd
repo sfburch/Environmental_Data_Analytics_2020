@@ -36,28 +36,28 @@ vector2
 vector3 <- c(TRUE,TRUE,TRUE,FALSE,TRUE,FALSE) #logical vector
 vector3
 
-vector1[3] # 
+vector1[3] # 5.3 showed up in the console. This is the 3rd number from vector 1.
 
 # Matrices ----
-matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # 
+matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # this is function, increasing down and right by each column
 matrix1
-matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) #
+matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) # counts up going left to right and going down a row
 matrix2
 matrix3 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE, # return after comma continues the line
                   dimnames = list(c("uno", "dos", "tres", "cuatro", "cinco"), 
                                   c("un", "deux", "trois", "cat"))) #
 
-matrix1[4, ] #
-matrix1[ , 3] #
-matrix1[c(12, 14)] #
-matrix1[c(12:14)] #
-matrix1[2:4, 1:3] #
+matrix1[4, ] #specifying row 4 from matrix 1
+matrix1[ , 3] #specifying column 3 from matrix 1
+matrix1[c(12, 14)] #just includes numbers 12 and 14, specifying objects in the matrix 
+matrix1[c(12:14)] #lists numbers from 12-14 from column
+matrix1[2:4, 1:3] #columns 2-4, 1-3 frame the whole matrix
 
 cells <- c(1, 26, 24, 68)
 rnames <- c("R1", "R2")
 cnames <- c("C1", "C2") 
 matrix4 <- matrix(cells, nrow = 2, ncol = 2, byrow = TRUE,
-  dimnames = list(rnames, cnames)) # 
+  dimnames = list(rnames, cnames)) # use of dimnames
 matrix4
 
 # Lists ---- 
@@ -66,48 +66,52 @@ list1[[2]]
 
 # Data Frames ----
 d <- c(1, 2, 3, 4) # What type of vector?
-e <- c("red", "white", "red", NA) # What type of vector?
-f <- c(TRUE, TRUE, TRUE, FALSE) # What type of vector?
-dataframe1 <- data.frame(d,e,f) #
+e <- c("red", "white", "red", NA) # What type of vector? character
+f <- c(TRUE, TRUE, TRUE, FALSE) # What type of vector? logical
+dataframe1 <- data.frame(d, e, f) #turned into a factor data frame
 names(dataframe1) <- c("ID","Color","Passed"); View(dataframe1) # 
 
 dataframe1[1:2,] # 
-dataframe1[c("ID","Passed")] # 
+dataframe1[c("ID","Passed")] # asking for specific elements or below call up specific columns or row?
 dataframe1$ID
 
 ```
 Question: How do the different types of data appear in the Environment tab?
 
-> Answer: 
+> Answer: under categories: 'data' - data frames, lists, matrix; 'values' - cells, cnames, vectors
 
 Question: In the R chunk below, write "dataframe1$". Press `tab` after you type the dollar sign. What happens?
 
-> Answer: 
+> Answer: ID pops up as soon as I click tab. Refer back to line 76.
 
 ### Coding challenge
 
 Find a ten-day forecast of temperatures (Fahrenheit) for Durham, North Carolina. Create two vectors, one representing the high temperature on each of the ten days and one representing the low.
 
 ```{r}
-
+# Vectors ----
+vectorhigh <- c(62,45,50,50,40,40,45,52,54,58)
+vectorlow <- c(31,29,43,24,23,23,26,30,42,41)
 ```
 
 Now, create two additional vectors that include the ten-day forecast for the high and low temperatures in Celsius.
 
 ```{r}
-
+vectorhighcels <- c(16.67,7.22,10,10,4.44,4.44,7.22,11.11,12.22,14.44)
+vectorlowcels <- c(-.56,-1.67,6.11,-4.44,-5,-5,-3.33,-1.11,5.56,5)
 ```
 
 Combine your four vectors into a data frame and add informative column names.
 
 ```{r}
-
+dataframetemp <- data.frame(vectorhigh,vectorlow, vectorhighcels, vectorlowcels) #name these myself
 ```
 
 Use the common functions `summary` and `sd` to obtain basic data summaries of the ten-day forecast. How would you call these functions differently for the entire data frame vs. a single column? Attempt to demonstrate both options below.
 
 ```{r}
-
+summary(dataframetemp$vectorhigh)
+sd(dataframetemp)
 ```
 
 
@@ -133,7 +137,7 @@ If a package is already installed, you will need to load it every session. You c
 #install.packages("dplyr") 
 #install.packages("ggplot2")
 # comment out install commands, use only when needed and re-comment
-
+install.packages("ggplot2")
 library(dplyr)
 library(ggplot2)
 
