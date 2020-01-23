@@ -31,7 +31,7 @@ library(tidyverse)
 # 3. Import datasets
 USGS.flow.data <- read.csv("./Data/Processed/USGS_Site02085000_Flow_Processed.csv")
 
-#View(USGS.flow.data)
+View(USGS.flow.data)
 # Alternate option: click on data frame in Environment tab
 
 colnames(USGS.flow.data)
@@ -42,7 +42,7 @@ dim(USGS.flow.data)
 class(USGS.flow.data$datetime)
 
 USGS.flow.data$datetime <- as.Date(USGS.flow.data$datetime, format = "%Y-%m-%d") 
-class(USGS.flow.data$datetime)
+class(USGS.flow.data$datetime) # shows this is actually a date
 
 ```
 
@@ -60,6 +60,7 @@ Visualize count data for categorical variables.
 ```{r, fig.height = 3, fig.width = 4}
 ggplot(USGS.flow.data, aes(x = discharge.mean.approval)) +
   geom_bar()
+#aes is aesthetic, find this bar chart in 'plot' tab, this data set we want to see approved or provisional (A & P); she prefers ggplot over histogram
 ```
 
 ### Histogram (function: geom_histogram)
@@ -67,41 +68,46 @@ ggplot(USGS.flow.data, aes(x = discharge.mean.approval)) +
 Visualize distributions of values for continuous numerical variables. What is happening in each line of code? Insert a comment above each line.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#aes is within layer rather than top level like used in ggplots
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean))
 
-#
+#skewed data, discharge cannot be zero; what we don't like about this graph is the negative space (we care about what is there, not not there); use log scale? ask
 ggplot(USGS.flow.data) +
-  geom_histogram(aes(x = discharge.mean), binwidth = 10)
+  geom_histogram(aes(x = discharge.mean), binwidth = 10) 
 
 #
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), bins = 20)
 
-#
+#deals with issue of negative space, set limits, start and end point; c-concat; allows us to get more useful information
 ggplot(USGS.flow.data, aes(x = discharge.mean)) +
   geom_histogram(binwidth = 10) + 
   scale_x_continuous(limits = c(0, 500))
   
-#
-ggplot(USGS.flow.data) +
+#represents how many meters off the ground our water level is, name plot and then tell R to print soemthing so it shows in knitted markdown document
+gageplot <- ggplot(USGS.flow.data) +
   geom_histogram(aes(x = gage.height.mean))
-
+print(gageplot)
+#histograms causes bins which isn't idela bc you have to adjust
 ```
 ### Frequency line graph (function: geom_freqpoly)
 
 An alternate to a histogram is a frequency polygon graph (distributions of values for continuous numerical variables). Instead of displaying bars,  counts of continuous variables are displayed as lines. This is advantageous if you want to display multiple variables or categories of variables at once.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#r will draw a count of frequency density of data; x = section below is a column; lty is line type and each number signifies something - 2: dashed line; lty 3: dotted line; how to create a legend?
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean), bins = 50) +
-  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "darkgray") +
+  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "maroon") +
   geom_freqpoly(aes(x = gage.height.max), bins = 50,  lty = 2) +
   scale_x_continuous(limits = c(0, 10))
 
-#
+summary(USGS.flow.data$gage.height.max) #can put length there too instead of summary
+summary(USGS.flow.data$gage.height.min)
+summary(USGS.flow.data$gage.height.mean)
+
+#separate color by approval code and specifying where ggplot puts the legend
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean, color = gage.height.mean.approval), bins = 50) +
   scale_x_continuous(limits = c(0, 10)) +
@@ -110,31 +116,32 @@ ggplot(USGS.flow.data) +
 ```
 ### Box-and-whisker plots (function: geom_boxplot, geom_violin)
 
-A box-and-whisker plot is yet another alternative to histograms (distributions of values for continuous numerical variables). These plots consist of: 
+*we won't use these a lot! A box-and-whisker plot is yet another alternative to histograms (distributions of values for continuous numerical variables). These plots consist of: 
 
 * A box from the 25th to the 75th percentile of the data, called the interquartile range (IQR).
 
 * A bold line inside the box representing the median value of the data. Whether the median is in the center or off to one side of the IQR will give you an idea about the skewness of your data.
 
-* A line outside of the box representing values falling within 1.5 times the IQR. 
+* A line outside of the box representing values falling within 1.5 times the IQR. Can change based on what your distribution is. Anything outside of range are represented as dots.
 
 * Points representing outliers, values that fall outside 1.5 times the IQR. 
 
 An alternate option is a violin plot, which displays density distributions, somewhat like a hybrid of the box-and-whiskers and the frequency polygon plot.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#one factor level shows up that we'd want to take out; high outliers for approved gage heights but not surpirsing bc it was highly skewed right? hard to say how different they are (A vs P) doesn't show crazy difference of sample sizes
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean.approval, y = gage.height.mean))
 
-#
+#can specify with x a continuous variable instead of factor levels, shows diff distirbutions across continuous range of data
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean, y = discharge.mean, group = cut_width(gage.height.mean, 1)))
 
-#
+#can show sample counts better if you have more data in one section by being wider and you can put your quartiles in there; shows diff distributions; look at help function to ask it to draw things and can scale it by area and count; default is area
 ggplot(USGS.flow.data) +
   geom_violin(aes(x = gage.height.mean.approval, y = gage.height.mean), 
-              draw_quantiles = c(0.25, 0.5, 0.75))
+              draw_quantiles = c(0.25, 0.5, 0.75),
+              scale="count")
 ```
 
 ### Scatterplot (function: geom_point)
