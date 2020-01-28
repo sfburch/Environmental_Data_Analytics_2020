@@ -89,7 +89,7 @@ ggplot(USGS.flow.data, aes(x = discharge.mean)) +
 gageplot <- ggplot(USGS.flow.data) +
   geom_histogram(aes(x = gage.height.mean))
 print(gageplot)
-#histograms causes bins which isn't idela bc you have to adjust
+#histograms causes bins which isn't ideal bc you have to adjust
 ```
 ### Frequency line graph (function: geom_freqpoly)
 
