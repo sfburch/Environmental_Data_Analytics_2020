@@ -19,33 +19,35 @@ Today we will work with a dataset from the [North Temperate Lakes Long-Term Ecol
 
 Opening discussion: why might we be interested in long-term observations of temperature, oxygen, and light in lakes?
 
-> Add notes here: 
+> Add notes here: algal blooms; ecosystem health - eutrophication levels (excess nutrients) can affect food systems; thinking about management and mitigation/adaptation techniques - can influence policy
 
 ```{r, message = FALSE}
 getwd()
 library(tidyverse)
-#install.packages(lubridate)
-library(lubridate)
-NTL.phys.data <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv")
+#install.packages(lubridate) #shuld laways be commented out; will work with dplyr primarily today and lubridate; how to check if package is already installed - go to package window (some may be in library but not yet loaded)
+library(lubridate) #why can't you just click check mark to load????
+NTL.phys.data <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv") 
+#create an object called NTL.phys.data be specific ; make that object from your folder but hasn't pulled it into r yet (not in environment yet; single dot is telling you to go one folder in from working directory, onle 1 or 2 dots)
 
-colnames(NTL.phys.data)
-head(NTL.phys.data)
+colnames(NTL.phys.data) #informative column names
+head(NTL.phys.data) #first 6 rows of that data frame, some days without measurements
 summary(NTL.phys.data)
-str(NTL.phys.data)
+str(NTL.phys.data) #preferred over summary, will tell you what type of data in each column
 dim(NTL.phys.data)
 
-class(NTL.phys.data$sampledate)
+class(NTL.phys.data$sampledate) #datafrmae and $ gives us specific column 
 # Format sampledate as date
 NTL.phys.data$sampledate <- as.Date(NTL.phys.data$sampledate, format = "%m/%d/%y")
+#refromat sample data to what R likes - above is in current format but this changes it to universally known date format, this is a good practice
 ```
 
 ## Data Wrangling
-
-Data wrangling extends data exploration: it allows you to process data in ways that are useful for you. An important part of data wrangling is creating *tidy datasets*, with the following rules: 
+#data wrangling or cleaning
+Data wrangling extends data exploration: it allows you to process data in ways that are useful for you. An important part of data wrangling is creating *tidy datasets*, (#these are easily manipulative) with the following rules: 
 
 1. Each variable has its own column
 2. Each observation has its own row
-3. Each value has its own cell
+3. Each value has its own cell #only one value in it
 
 What is the best way to wrangle data? There are multiple ways to arrive at a specific outcome in R, and we will illustrate some of those approaches. Your goal should be to write the simplest code that will get you to your desired outcome. However, there is sometimes a trade-off of the opportunity cost to learn a new formulation of code and the time it takes to write complex code that you already know. Remember that the best code is one that is easy to understand for yourself and your collaborators. Remember to comment your code, use informative names for variables and functions, and use reproducible methods to arrive at your output.
 
@@ -54,35 +56,35 @@ What is the best way to wrangle data? There are multiple ways to arrive at a spe
 `dplyr` is a package in R that includes functions for data manipulation (i.e., data wrangling or data munging). `dplyr` is included in the tidyverse package, so you should already have it installed on your machine. The functions act as verbs for data wrangling processes. For more information, run this line of code:
 
 ```{r, results = "hide"}
-vignette("dplyr")
+vignette("dplyr") #help function to learn more, #hide is helpful - ask more
 ```
 
 ### Filter
 
-Filtering allows us to choose certain rows (observations) in our dataset.
+Filtering allows us to choose certain rows (observations) in our dataset. (#this is dplyr function)
 
 Here are the relevant commands used in the `filter` function. Add some notes to designate what these commands mean. 
-`==`
-`!=`
-`<`
-`<=`
-`>`
-`>=`
-`&`
-`|`
+`==` # equals, if factor is numeric you have to have 2
+`!=` #not equal to
+`<` # less than
+`<=` # less than or equal to
+`>`# greater than
+`>=`# greater than or equal to
+`&` # and
+`|` # or
 
 ```{r}
 class(NTL.phys.data$lakeid)
 class(NTL.phys.data$depth)
 
-# matrix filtering
+# matrix filtering, making a new one select rows where depth is equal to 0, the comma after indicates that you want all of the columns, either side can be blank but have to have comma, you'll see coulmn number remained the same
 NTL.phys.data.surface1 <- NTL.phys.data[NTL.phys.data$depth == 0,]
 
-# dplyr filtering
-NTL.phys.data.surface2 <- filter(NTL.phys.data, depth == 0)
-NTL.phys.data.surface3 <- filter(NTL.phys.data, depth < 0.25)
+# dplyr filtering, making new object, tell it which data to pull from and which rows to select
+NTL.phys.data.surface2 <- filter(NTL.phys.data, depth == 0) #double equal, same dimensions as the other
+NTL.phys.data.surface3 <- filter(NTL.phys.data, depth < 0.25) #just another way to say it?
 
-# Did the methods arrive at the same result?
+# Did the methods arrive at the same result? #can swithc out tbl for data.frame
 head(NTL.phys.data.surface1)
 dim(NTL.phys.data.surface1)
 head(NTL.phys.data.surface2)
@@ -90,82 +92,88 @@ dim(NTL.phys.data.surface2)
 head(NTL.phys.data.surface3)
 dim(NTL.phys.data.surface3)
 
-# Choose multiple conditions to filter
-summary(NTL.phys.data$lakename)
-NTL.phys.data.PeterPaul1 <- filter(NTL.phys.data, lakename == "Paul Lake" | lakename == "Peter Lake")
+# Choose multiple conditions to filter, limit characters to 80 per line!
+summary(NTL.phys.data$lakename) #tells you how many cells?
+NTL.phys.data.PeterPaul1 <- filter(NTL.phys.data, lakename == "Paul Lake" | lakename == "Peter Lake") #or is used bc only want one lake in each cell or you can do the below which is specifying taking out certain lakes
 NTL.phys.data.PeterPaul2 <- filter(NTL.phys.data, lakename != "Central Long Lake" & 
                                      lakename != "Crampton Lake" & lakename != "East Long Lake" &
                                      lakename != "Hummingbird Lake" & lakename != "Tuesday Lake" &
                                      lakename != "Ward Lake" & lakename != "West Long Lake")
-NTL.phys.data.PeterPaul3 <- filter(NTL.phys.data, lakename %in% c("Paul Lake", "Peter Lake"))
+NTL.phys.data.PeterPaul3 <- filter(NTL.phys.data, lakename %in% c("Paul Lake", "Peter Lake")) #%in% I want anything to include anything that is both peter and paul lake; c is for including?? only with %i% in filter function 
 
-# Choose a range of conditions of a numeric or integer variable
+# Choose a range of conditions of a numeric or integer variable; which days of the yr the lakes were sampled - big range 55th day of the year to 307 near end of year - we're not sampling when the lake is frozen (from summary)
 summary(NTL.phys.data$daynum)
-NTL.phys.data.JunethruOctober1 <- filter(NTL.phys.data, daynum > 151 & daynum < 305)
-NTL.phys.data.JunethruOctober2 <- filter(NTL.phys.data, daynum > 151, daynum < 305)
+NTL.phys.data.JunethruOctober1 <- filter(NTL.phys.data, daynum > 151 & daynum < 305) #any more context for this?? has to fulfill both of those requests
+NTL.phys.data.JunethruOctober2 <- filter(NTL.phys.data, daynum > 151, daynum < 305) #could also use comma and gets you the same thing as the and above, but she thinks commas are confusing for this and to use &
 NTL.phys.data.JunethruOctober3 <- filter(NTL.phys.data, daynum >= 152 & daynum <= 304)
 NTL.phys.data.JunethruOctober4 <- filter(NTL.phys.data, daynum %in% c(152:304))
 
 # Exercise: 
 # filter NTL.phys.data for the year 1999
-# what code do you need to use, based on the class of the variable?
-class(NTL.phys.data$year4)
+# what code do you need to use, based on the class of the variable? ==
+class(NTL.phys.data$year4) #integer
+summary(NTL.phys.data$year4)
+NTL.phys.data.1999 <- filter(NTL.phys.data, year4 == 1999)
 
 # Exercise: 
 # filter NTL.phys.data for Tuesday Lake from 1990 through 1999.
-
+NTL.phys.data.Tuesday <- filter(NTL.phys.data, 
+                                lakename == "Tuesday Lake" & 
+                                  year4 > 1989 & year4 < 2000) #or year4 %1% c(1990:1999)
 
 ```
 Question: Why don't we filter using row numbers?
 
-> Answer: 
+> Answer: you want it to filter based off of attributes; if data set changes it could cause a problem
 
 ### Arrange
 
 Arranging allows us to change the order of rows in our dataset. By default, the arrange function will arrange rows in ascending order.
 
 ```{r}
-NTL.phys.data.depth.ascending <- arrange(NTL.phys.data, depth)
-NTL.phys.data.depth.descending <- arrange(NTL.phys.data, desc(depth))
+NTL.phys.data.depth.ascending <- arrange(NTL.phys.data, depth) #r has rearranged data set
+NTL.phys.data.depth.descending <- arrange(NTL.phys.data, desc(depth)) #desc function have to specify descending but not ascending
 
 # Exercise: 
-# Arrange NTL.phys.data by temperature, in descending order. 
-# Which dates, lakes, and depths have the highest temperatures?
+# Arrange NTL.phys.data by temperature, in descending order. #can change back to r standard by far left column
+# Which dates, lakes, and depths have the highest temperatures? those at shallow depths and mid-Summer, some lakes show up more than others
+
+NTL.phys.data.temperature.descending <- arrange(NTL.phys.data, desc(temperature_C))
 
 
 ```
 ### Select
 
-Selecting allows us to choose certain columns (variables) in our dataset.
+Selecting allows us to choose certain columns (variables) in our dataset. what fulfills certain conditions, keeps it clean, specifying certain columns based off of columns name, not based off of fulfilling certain attribute
 
 ```{r}
-NTL.phys.data.temps <- select(NTL.phys.data, lakename, sampledate:temperature_C)
+NTL.phys.data.temps <- select(NTL.phys.data, lakename, sampledate:temperature_C) #just use commas between to separate columns, can say you don't want it to include lakname (-lakename, use minus sign) can't be a mix though only all include or only exclude*******
 
 ```
 ### Mutate
 
-Mutating allows us to add new columns that are functions of existing columns. Operations include addition, subtraction, multiplication, division, log, and other functions.
+Mutating allows us to add new columns that are functions of existing columns (adds column to end of data frame). Operations include addition, subtraction, multiplication, division, log, and other functions. 
 
 ```{r}
 
-NTL.phys.data.temps <- mutate(NTL.phys.data.temps, temperature_F = (temperature_C*9/5) + 32)
+NTL.phys.data.temps <- mutate(NTL.phys.data.temps, temperature_F = (temperature_C*9/5) + 32) #can be any math operator
 
 ```
 
 ## Lubridate
 
-A package that makes coercing date much easier is `lubridate`. A guide to the package can be found at https://lubridate.tidyverse.org/. The cheat sheet within that web page is excellent too. This package can do many things (hint: look into this package if you are having unique date-type issues), but today we will be using two of its functions for our NTL dataset. 
+SUPER USEFUL IF WORKING WITH DATES IN R. she uses this almost exclusively. A package that makes coercing date much easier is `lubridate`. A guide to the package can be found at https://lubridate.tidyverse.org/. The cheat sheet within that web page is excellent too. This package can do many things (hint: look into this package if you are having unique date-type issues), but today we will be using two of its functions for our NTL dataset. 
 
 ```{r}
-# add a month column to the dataset
+# add a month column to the dataset, will always work on vectors that are dates, it put month column at the end
 NTL.phys.data.PeterPaul1 <- mutate(NTL.phys.data.PeterPaul1, month = month(sampledate)) 
 
-# reorder columns to put month with the rest of the date variables
+# reorder columns to put month with the rest of the date variables, call it the same thing
 NTL.phys.data.PeterPaul1 <- select(NTL.phys.data.PeterPaul1, lakeid:daynum, month, sampledate:comments)
 
 # find out the start and end dates of the dataset
 interval(NTL.phys.data.PeterPaul1$sampledate[1], NTL.phys.data.PeterPaul1$sampledate[21613])
-interval(first(NTL.phys.data.PeterPaul1$sampledate), last(NTL.phys.data.PeterPaul1$sampledate))
+interval(first(NTL.phys.data.PeterPaul1$sampledate), last(NTL.phys.data.PeterPaul1$sampledate)) #asking between first and last dates, much easier and comes with lubridate
 ```
 
 

@@ -24,15 +24,15 @@ The completed exercise is due on Tuesday, January 28 at 1:00 pm.
 ## Set up your R session
 
 1. Check your working directory, load necessary packages (tidyverse), and upload two datasets: the ECOTOX neonicotinoid dataset (ECOTOX_Neonicotinoids_Insects_raw.csv) and the Niwot Ridge NEON dataset for litter and woody debris (NEON_NIWO_Litter_massdata_2018-08_raw.csv). Name these datasets "Neonics" and "Litter", respectively. 
-```{r,  message = FALSE}
+```{r, message = FALSE}
 getwd()
+
+#Load packages
 library(tidyverse)
 
-read.csv(file.choose(ECOTOX_Neonicotinoids_Insects_raw))
-Neonics <- read.csv(file.choose(ECOTOX_Neonicotinoids_Insects_raw))
-
-Litter <- read.csv(file.choose(NEON_NIWO_Litter_massdata_2018_08_raw))
-View(Litter)
+#Import data
+Litter <- read.csv("./Data/Raw/NEON_NIWO_Litter_massdata_2018-08_raw.csv")
+Neonics <- read.csv("./Data/Raw/ECOTOX_Neonicotinoids_Insects_raw.csv")
 
 ```
 
@@ -40,11 +40,11 @@ View(Litter)
 
 2. The neonicotinoid dataset was collected from the Environmental Protection Agency's ECOTOX Knowledgebase, a database for ecotoxicology research. Neonicotinoids are a class of insecticides used widely in agriculture. The dataset that has been pulled includes all studies published on insects. Why might we be interested in the ecotoxicologoy of neonicotinoids on insects? Feel free to do a brief internet search if you feel you need more background information. 
 
-> Answer: Neonicotoids are considered to be highly effective insecticides for the following: 1) crop protection against pests, and 2) flea control for both cats and dogs. These widly spread/used insecticides could be posing a threat to aquatic environments, as they first contaminate the soil on which they're used and then their residues trickle down into our water systems. To date, there is little awareness of the impacts of Neonicotoids on aquatic environments and ecosystems overall; thus, it is important to close such mentioned knowledge gaps by further analyzing data linked to its use.(https://www.ncbi.nlm.nih.gov/pubmed/15822177)
+> Answer: Neonicotoids are considered to be highly effective insecticides for the following: 1) crop protection against pests, and 2) flea control for both cats and dogs. These widly spread/used insecticides could be posing a threat to aquatic environments, as they first contaminate the soil on which they're used and then their residues trickle down into our water systems. To date, there is little awareness of the impacts of Neonicotoids on aquatic environments and ecosystems overall (how much are absorbed by plants that insects feed on); thus, it is important to close such mentioned knowledge gaps by further analyzing data linked to its use.(https://www.ncbi.nlm.nih.gov/pubmed/15822177) These insecticides need to be studied further to understand their effect on insects (i.e. bees).
 
 3. The Niwot Ridge litter and woody debris dataset was collected from the National Ecological Observatory Network, which collectively includes 81 aquatic and terrestrial sites across 20 ecoclimatic domains. 32 of these sites sample forest litter and woody debris, and we will focus on the Niwot Ridge long-term ecological research (LTER) station in Colorado. Why might we be interested in studying litter and woody debris that falls to the ground in forests? Feel free to do a brief internet search if you feel you need more background information. 
 
-> Answer: It is important to study this as such litter and woody debris can impact forest communities and negatively impact ground-dwelling invertebrates. These types of disturbances can alter habitat structure, energy and nutrient flow, and ultimately shape critical ecosystem processes. (https://www.mdpi.com/1999-4907/8/5/174/htm)
+> Answer: It is important to study this as such litter and woody debris can impact forest communities and negatively impact ground-dwelling invertebrates (i.e. via forest fire risk). These types of disturbances can alter habitat structure, energy and nutrient flow, and ultimately shape critical ecosystem processes. (https://www.mdpi.com/1999-4907/8/5/174/htm)
 
 4. How is litter and woody debris sampled as part of the NEON network? Read the NEON_Litterfall_UserGuide.pdf document to learn more. List three pieces of salient information about the sampling methods here: 
 
@@ -59,15 +59,15 @@ View(Litter)
 5. What are the dimensions of the dataset?
 
 ```{r}
-dim(ECOTOX_Neonicotinoids_Insects_raw)
+dim(Neonics)
 ```
 
 6. Using the `summary` function, determine the most common effects that are studied. Why might these effects specifically be of interest?
 ```{r}
-summary(ECOTOX_Neonicotinoids_Insects_raw)
+summary(Neonics)
 ```
 
-> Answer: It is critical to understand if there are any discrepancies in, say, how long an organism was observed and its specific exposure type. This also allows you to see important summary statistics in one place, including for example: mean, median, and quartiles.
+> Answer: It is critical to understand if there are any discrepancies in, say, how long an organism was observed and its specific exposure type. This also allows you to see important summary statistics in one place, including for example: mean, median, and quartiles. The most commonly studied effects include abundance and mortality, which can help researchers better understand insect populations at different points in their life. 
 
 7. Using the `summary` function, determine the six most commonly studied species in the dataset (common name). What do these species have in common, and why might they be of interest over other insects? Feel free to do a brief internet search for more information if needed.
 
@@ -83,9 +83,10 @@ summary(Neonics)
 
 ```{r}
 class("Con.1.Author")
+class(Neonics$Conc.1..Author.)
 ```
 
-> Answer: This is considered to be a character class. It is not numeric because it is listed as an active ingredient.
+> Answer: This is considered to be a character class, but then when I re-ran it using the Neonics dataset, I received 'factor' as the output. It is not numeric because it is listed as an active ingredient.
 
 
 ## Explore your data graphically (Neonics)
@@ -118,7 +119,7 @@ ggplot(Neonics, aes(x = Endpoint)) +
 class("Endpoint")
 ```
 
-> Answer: The two most common endpoints are 'NOEL' and 'LOEL,' and they are defined as characters.
+> Answer: The two most common endpoints are 'NOEL' and 'LOEL,' and they are defined as characters. LOEL is the Lowest-Observable-Effect-Level and is considered the lowest dose concentration. NOEL stands for No-Observable-Effect-Level and is considered the highest dose concentration; this does not produce significantly different effects from the response controls.
 >
 
 ## Explore your data (Litter)
@@ -130,9 +131,10 @@ class(Litter$datetime)
 
 Litter$datetime <- format(Litter$datetime, "%y")
 Litter$collectDate <- as.Date(Litter$collectDate, format = "%Y-%m-%d")
-class(Litter$collectDate)
+class(Litter$collectDate) #factor #date
 
 unique(Litter$collectDate)
+unique(Litter[,"collectDate"])
 ```
 
 13. Using the `unique` function, determine how many plots were sampled at Niwot Ridge. How is the information obtained from `unique` different from that obtained from `summary`?
@@ -141,22 +143,31 @@ unique(Litter$collectDate)
 unique(Litter$plotID) #12
 ```
 
-> Answer: The summary function is considered a generic function that produces summaries of the results of "various model fitting functions." Where as the unique function is used to return a vector, data frame or array with any duplicate rows/elements removed.
+> Answer: The summary function is considered a generic function that produces summaries of the results of "various model fitting functions." Where as the unique function is used to return a vector, data frame or array with any duplicate rows/elements removed (will be useful for pipes). This shows distinct factors.
 
 14. Create a bar graph of functionalGroup counts. This shows you what type of litter is collected at the Niwot Ridge sites. Notice that litter types are fairly equally distributed across the Niwot Ridge sites.
 ```{r}
-
+ggplot(Litter, aes(x = functionalGroup)) +
+  geom_bar()
 ```
 
 15. Using `geom_boxplot` and `geom_violin`, create a boxplot and a violin plot of dryMass by functionalGroup. 
 ```{r}
+#geom boxplot
+ggplot(Litter) +
+  geom_boxplot(aes(x = functionalGroup, y = dryMass, group = cut_width(functionalGroup, 1)))
 
+#Violin plot
+ggplot(Litter) +
+  geom_violin(aes(x = functionalGroup, y = dryMass),
+                  draw_quantiles = c(.25, .5, .75),
+              scale = "count")
 ```
 
 Why is the boxplot a more effective visualization option than the violin plot in this case?
 
-> Answer: 
+> Answer: The violin plot does not allow one to see any outliers nor the middle portion (50%) of the whole data distribution, whereas the boxplot does. It is difficult to understand what the violin plot is communicating.
 
 What type(s) of litter tend to have the highest biomass at these sites? 
 
-> Answer: __ had the highest biomass at these sites.
+> Answer: Needles have the highest biomass at these sites.
