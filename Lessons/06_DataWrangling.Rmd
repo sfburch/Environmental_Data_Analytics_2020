@@ -181,7 +181,7 @@ interval(first(NTL.phys.data.PeterPaul1$sampledate), last(NTL.phys.data.PeterPau
 
 Sometimes we will want to perform multiple functions on a single dataset on our way to creating a processed dataset. We could do this in a series of subsequent functions or create a custom function. However, there is another method to do this that looks cleaner and is easier to read. This method is called a pipe. We designate a pipe with `%>%`. A good way to think about the function of a pipe is with the word "then." 
 
-Let's say we want to take our raw dataset (NTL.phys.data), *then* filter the data for Peter and Paul lakes, *then* select temperature and observation information, and *then* add a column for temperature in Fahrenheit: 
+Let's say we want to take our raw dataset (NTL.phys.data), *then* filter the data for Peter and Paul lakes, *then* select temperature and observation information, and *then* add a column for temperature in Fahrenheit: #can run multiple operations in one line of code, specify data frame first, take the phys data set THEN (pipe) filter for certain things, select certain columns, so then mutate data frame with new column name and equation; saves you time to do things in sequence as laid out below
 
 ```{r}
 NTL.phys.data.processed <- 
@@ -198,10 +198,11 @@ Notice that we did not place the dataset name inside the wrangling function but 
 
 ```{r}
 write.csv(NTL.phys.data.PeterPaul1, row.names = FALSE, file = "./Data/Processed/NTL-LTER_Lake_ChemistryPhysics_PeterPaul_Processed.csv")
+
 ```
 
 ## Closing Discussion
 
-When we wrangle a raw dataset into a processed dataset, we create a code file that contains only the wrangling code. We then save the processed dataset as a new spreadsheet and then create a separate code file to analyze and visualize the dataset. Why do we keep the wrangling code separate from the analysis code?
+When we wrangle a raw dataset into a processed dataset, we create a code file that contains only the wrangling code. We then save the processed dataset as a new spreadsheet and then create a separate code file to analyze and visualize the dataset. Why do we keep the wrangling code separate from the analysis code? two packages that use a lot of verbiage
 
 
