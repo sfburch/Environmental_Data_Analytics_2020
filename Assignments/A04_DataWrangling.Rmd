@@ -1,6 +1,6 @@
 ---
 title: "Assignment 4: Data Wrangling"
-author: "Student Name"
+author: "Samantha Burch"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -26,7 +26,32 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 ```{r, message = FALSE}
 #1
 
+library(tidyverse)
+library(lubridate)
+
+EPAAir1 <- read.csv("./Data/Raw/EPAair_O3_NC2018_raw.csv")
+EPAAir2 <- read.csv("./Data/Raw/EPAair_O3_NC2019_raw.csv")
+EPAAir3 <- read.csv("./Data/Raw/EPAair_PM25_NC2018_raw.csv")
+EPAAir4 <- read.csv("./Data/Raw/EPAair_PM25_NC2019_raw.csv")
+
 #2
+
+view(EPAAir1)
+dim(EPAAir1)
+dim(EPAAir2)
+dim(EPAAir3)
+dim(EPAAir4)
+
+colnames(EPAAir1)
+colnames(EPAAir2)
+colnames(EPAAir3)
+colnames(EPAAir4)
+
+#str(EPAAir1)
+str(EPAAir2)
+str(EPAAir3)
+str(EPAAir4)
+
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -35,14 +60,29 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 5. For the PM2.5 datasets, fill all cells in AQS_PARAMETER_DESC with "PM2.5" (all cells in this column should be identical).
 6. Save all four processed datasets in the Processed folder. Use the same file names as the raw files but replace "raw" with "processed".
 
-```{r}
+```{r echo = TRUE, include = FALSE} 
+#the above is supposed to prevent all the printed code from showing up in my knitted PDF - hope it does!
 #3
+class(EPAAir1$Date)
+EPAAir1$Date <- as.Date(EPAAir1$Date, format = "%Y-%m-%d")
+View(EPAAir1$Date)
 
 #4
+View(EPAAir1$DAILY_AQI_VALUE)
+EPAAir1 %>% select(1,7,8,12,18,19,20)
+EPAAir2 %>% select(1,7,8,12,18,19,20)
+EPAAir3 %>% select(1,7,8,12,18,19,20)
+EPAAir4 %>% select(1,7,8,12,18,19,20)
 
 #5
+EPAAir25 <- mutate(EPAAir3, AQS_PARAMETER_DESC = "PM2.5")
+View(EPAAir25)
+
+EPAAir25_2 <- mutate(EPAAir4, AQS_PARAMETER_DESC = "PM2.5")
+View(EPAAir25_2)
 
 #6
+
 
 ```
 
@@ -62,6 +102,11 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 
 ```{r}
 #7
+EPAAirrbind <- rbind(EPAAir1, EPAAir2, EPAAir3, EPAAir4)
+rbind(EPAAir1, EPAAir2)
+
+colnames(EPAAir1)
+colnames(EPAAir3)
 
 #8
 
