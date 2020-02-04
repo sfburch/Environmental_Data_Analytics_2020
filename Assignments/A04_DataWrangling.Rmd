@@ -25,33 +25,34 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 
 ```{r, message = FALSE}
 #1
-
+#load tidyverse and lubridate packages
 library(tidyverse)
 library(lubridate)
 
+#import the 4 raw data files
 EPAAir1 <- read.csv("./Data/Raw/EPAair_O3_NC2018_raw.csv")
 EPAAir2 <- read.csv("./Data/Raw/EPAair_O3_NC2019_raw.csv")
 EPAAir3 <- read.csv("./Data/Raw/EPAair_PM25_NC2018_raw.csv")
 EPAAir4 <- read.csv("./Data/Raw/EPAair_PM25_NC2019_raw.csv")
 
 #2
-
+#explore the dimensions
 view(EPAAir1)
 dim(EPAAir1)
 dim(EPAAir2)
 dim(EPAAir3)
 dim(EPAAir4)
-
+#explore column names
 colnames(EPAAir1)
 colnames(EPAAir2)
 colnames(EPAAir3)
 colnames(EPAAir4)
 
-#str(EPAAir1)
+#explore the strucutre
+str(EPAAir1)
 str(EPAAir2)
 str(EPAAir3)
 str(EPAAir4)
-
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -62,28 +63,46 @@ str(EPAAir4)
 
 ```{r echo = TRUE, include = FALSE} 
 #the above is supposed to prevent all the printed code from showing up in my knitted PDF - hope it does!
-#3
+#3 - change the date formats
 class(EPAAir1$Date)
-EPAAir1$Date <- as.Date(EPAAir1$Date, format = "%Y-%m-%d")
+EPAAir1$Date <- as.Date(EPAAir1$Date, format = "%m/%d/%Y")
 View(EPAAir1$Date)
 
-#4
+class(EPAAir2$Date)
+EPAAir2$Date <- as.Date(EPAAir2$Date, format = "%m/%d/%Y")
+
+class(EPAAir3$Date)
+EPAAir3$Date <- as.Date(EPAAir3$Date, format = "%m/%d/%Y")
+
+class(EPAAir4$Date)
+EPAAir4$Date <- as.Date(EPAAir4$Date, format = "%m/%d/%Y")
+
+#4 select the required columns
 View(EPAAir1$DAILY_AQI_VALUE)
-EPAAir1 %>% select(1,7,8,12,18,19,20)
+EPAAir1 %>% select(1,7,8,12,18,19,20) #could also do EPAAir1 %>% select(Date, DAILY_AQI_VALUE...)
 EPAAir2 %>% select(1,7,8,12,18,19,20)
 EPAAir3 %>% select(1,7,8,12,18,19,20)
 EPAAir4 %>% select(1,7,8,12,18,19,20)
 
-#5
+#5 fill all cells in AQS_PARAMETER_DESC with "PM2.5"
 EPAAir25 <- mutate(EPAAir3, AQS_PARAMETER_DESC = "PM2.5")
 View(EPAAir25)
 
 EPAAir25_2 <- mutate(EPAAir4, AQS_PARAMETER_DESC = "PM2.5")
 View(EPAAir25_2)
 
-#6
+#6 save the new datasets
+write.csv(EPAAir1, row.names = FALSE,
+          file = "./Data/Processed/EPAair_03_NC2018_Processed.csv")
 
+write.csv(EPAAir1, row.names = FALSE,
+          file = "./Data/Processed/EPAair_03_NC2019_Processed.csv")
 
+write.csv(EPAAir1, row.names = FALSE,
+          file = "./Data/Processed/EPAair_PM25_NC2018_Processed.csv")
+
+write.csv(EPAAir1, row.names = FALSE,
+          file = "./Data/Processed/EPAair_PM25_NC2019_Processed.csv")
 ```
 
 
@@ -102,20 +121,34 @@ View(EPAAir25_2)
 
 ```{r}
 #7
-EPAAirrbind <- rbind(EPAAir1, EPAAir2, EPAAir3, EPAAir4)
-rbind(EPAAir1, EPAAir2)
+#rename column number 5 to match for all four datasets
+colnames(EPAAir1)[5] <- "Concentration"
+colnames(EPAAir2)[5] <- "Concentration"
+colnames(EPAAir25)[5] <- "Concentration"
+colnames(EPAAir25_2)[5] <- "Concentration"
 
-colnames(EPAAir1)
-colnames(EPAAir3)
+#combine the four datasets using rbind
+EPAAir.Datasets <- rbind(EPAAir1, EPAAir2, EPAAir25, EPAAir25_2)
+view(EPAAir.Datasets)
 
 #8
+EPAAir.Datasets.Summaries <- filter(EPAAir.Datasets, Site.Name %in% c( "Linville Falls", "Durham Armory", "Leggett", "Hattie Avenue", "Clemmons Middle", "Mendenhall School", "Frying Pan Mountain", "West Johnston Co.", "Garinger High School", "Castle Hayne", "Pitt Agri. Center", "Bryson City", "Millbrook School")) %>%
+  group_by(Date, Site.Name, AQS_PARAMETER_DESC, COUNTY) %>%
+  summarise(meanAQI = mean(DAILY_AQI_VALUE),
+            meanLAT = mean(SITE_LATITUDE),
+            meanLong = mean(SITE_LONGITUDE)) %>%
+  mutate(month = month(Date)) %>%
+  mutate(year = year(Date))
 
 #9
+EPAAir.Datasets.Summaries.SPREAD <- spread(EPAAir.Datasets.Summaries, AQS_PARAMETER_DESC, meanAQI)
 
-#10
+#10 - Call the dimensions of the new tidy dataset
+dim(EPAAir.Datasets.Summaries.SPREAD)
 
 #11
-
+write.csv(EPAAir.Datasets.Summaries.SPREAD, row.names = FALSE,
+          file = "EPAair_O3_PM25_NC1718_Processed.csv")
 ```
 
 
@@ -126,13 +159,18 @@ colnames(EPAAir3)
 
 ```{r}
 #12a
+EPAAir.Datasets.Summaries.dataframe <-  
+  EPAAir.Datasets.Summaries.SPREAD %>% 
+  group_by(Site.Name, month, year) %>% 
+summarise(mean0zone = mean(Ozone), meanPM25 = mean(PM2.5)) %>% drop_na ("month", "year")
 
-#12b
 
 #13
+
+dim(EPAAir.Datasets.Summaries.dataframe)
 
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`?
 
-> Answer: 
+##Answer: Na omit removes all NAs (omit all rows containing missing values), whereas drop_na removes rows from a data frame when they have missing values on a given variable.
