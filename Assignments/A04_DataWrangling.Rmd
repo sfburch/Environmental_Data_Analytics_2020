@@ -61,7 +61,7 @@ str(EPAAir4)
 5. For the PM2.5 datasets, fill all cells in AQS_PARAMETER_DESC with "PM2.5" (all cells in this column should be identical).
 6. Save all four processed datasets in the Processed folder. Use the same file names as the raw files but replace "raw" with "processed".
 
-```{r echo = TRUE, include = FALSE} 
+```{r message = FALSE} 
 #the above is supposed to prevent all the printed code from showing up in my knitted PDF - hope it does!
 #3 - change the date formats
 class(EPAAir1$Date)
