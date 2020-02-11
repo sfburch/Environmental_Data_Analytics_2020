@@ -57,7 +57,7 @@ Here are some commonly used layers for plotting in ggplot:
 * geom_density_ridges
 * geom_point
 * geom_errorbar
-* geom_smooth
+* geom_smooth #add a line of best fit
 * geom_line
 * geom_area
 * geom_abline (plus geom_hline and geom_vline)
