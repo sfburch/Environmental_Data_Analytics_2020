@@ -18,13 +18,13 @@ editor_options:
 getwd()
 library(tidyverse)
 
-EPAair <- read.csv("./Data/Processed/EPAair_O3_PM25_NC1819_Processed.csv")
+EPAair <- read.csv("./Data/Processed/EPAair_O3_PM25_NC1819_Processed.csv") #can use _KS
 
 # Set date to date format
 EPAair$Date <- as.Date(EPAair$Date, format = "%Y-%m-%d")
 
 # Set theme
-mytheme <- theme_classic(base_size = 14) +
+mytheme <- theme_classic(base_size = 14) + #base size is larger than usual, why???
   theme(axis.text = element_text(color = "black"), 
         legend.position = "top")
 theme_set(mytheme)
@@ -62,29 +62,31 @@ Are Ozone levels below the threshold for "good" AQI index (0-50)?
 
 ```{r}
 
-summary(EPAair$Ozone)
-EPAair.subsample <- sample_n(EPAair, 5000)
+summary(EPAair$Ozone) #test mean of group is equal to specifi value
+EPAair.subsample <- sample_n(EPAair, 5000) #I'd like to take random assortment of 5000
 
 # Evaluate assumption of normal distribution
-shapiro.test((EPAair.subsample$Ozone))
+shapiro.test((EPAair.subsample$Ozone)) #p value is really small, so not well apprix by normal distr is really low??? just stating p value means nothing without context
 ggplot(EPAair, aes(x = Ozone)) +
-  geom_histogram() 
-qqnorm(EPAair$Ozone); qqline(EPAair$Ozone)
+  geom_histogram() #not normal, common problem
+qqnorm(EPAair$Ozone); qqline(EPAair$Ozone) #semi colon asks you to continue line, theoretical quantiles and sample quantiles;
 
-O3.onesample <- t.test(EPAair$Ozone, mu = 50, alternative = "less")
+O3.onesample <- t.test(EPAair$Ozone, mu = 50, alternative = "less") #save it as an object so you can call back to it; alt less means alt hypothese means mean is less than 50, better than two tailed bc just a one sample t test; need alt so it doens't think you're looking at both greater than and less than; don't include Q plot in report
 O3.onesample
 
 Ozone.plot <- ggplot(EPAair, aes(x = Ozone)) +
-  #geom_density(stat = "count", fill = "gray") +
+  #geom_density(stat = "count", fill = "gray") + #can uncode this and # out the below line which gives you more jagged distribution bc it shows count of data
   geom_density(fill = "gray") +
-  geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) +
-  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
-print(Ozone.plot)
+  geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) + #testing against mu of 50, lty 2 is dashed line, size = thickness
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) #can make graph line up with zero, have to specify for both x and y axes; green line is null hypothesis
+print(Ozone.plot) #only needs x aesthetic
 ```
 
 Write a sentence or two about the results of this test. Include both the results of the test and an interpretation that puts the findings in context of the resarch question.
 
-> 
+> Via the t-test, the majority of the results fall below the true mean of 50. no...
+We can accept that the null hypothesis is less than 50. The t-test was less than _ and mean was less than confidence interval...
+CORRECT SENTENCE: EPA ozone measurements for 2018-2019 were significantly lower than 50, the AQI threshold for "good" air quality (t-test; t = -57.98, p < 0.0001) #sometimes putting p value is not useful if it's really small, don't include null hypothesis, comm what test was to avg reader; goes in final report (results)
 
 ### Two-sample t-test
 The two-sample *t* test is used to test the hypothesis that the mean of two samples is equivalent. Unlike the one-sample tests, a two-sample test requires a second assumption that the variance of the two groups is equivalent. Are Ozone levels different between 2018 and 2019?
@@ -92,21 +94,25 @@ The two-sample *t* test is used to test the hypothesis that the mean of two samp
 ```{r}
 shapiro.test(EPAair$Ozone[EPAair$Year == 2018])
 shapiro.test(EPAair$Ozone[EPAair$Year == 2019])
-var.test(EPAair$Ozone ~ EPAair$Year)
+var.test(EPAair$Ozone ~ EPAair$Year) #were ozone levels diff btwn 18 and 19, subset with square brackets, not well approx by a normal distr bc very low p values so our null is that sample is well approx by normal distrib, tilda is "by"; null would be that it IS = to 1
 
 ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
-  geom_freqpoly()
+  geom_freqpoly() #freq polygon colored by year as.factor year bc you're counting the years 2018 and 2019 as two different values, can do it in middle of ggplot, don't mess with data frame but specify as a factor, fairly similar distribution
 
-# Format as a t-test
+# Format as a t-test, test ozone by (tilda) year, alt hyp is that means are diff (default for t-test)
 O3.twosample <- t.test(EPAair$Ozone ~ EPAair$Year)
-O3.twosample
-O3.twosample$p.value
+O3.twosample #reject the null hypothesis that means are equal, t value is negative so we get p value less than ? 95% confid int gives us confi of? **** about a 1 unit increase in AQI from 18 to 19, over 6000 degress of freedom, higher the number the better
+O3.twosample$p.value #can call up items from the lists, just a different formatting
 
-# Format as a GLM
+# Format as a GLM, can put linear combo to predict response variable, can do this with lm function
 O3.twosample2 <- lm(EPAair$Ozone ~ EPAair$Year)
-summary(O3.twosample2)
+summary(O3.twosample2) #summary is for linear model, for each inc in yr, we're seeing x increase in which value??, note rounding errors but same output more or less
+
+plot(O3.twosample2) #use plot function for t dot test you can't plot this way bc can only call lm ; shows fit vs how off it was from each fit (residuals); hit return again (looks pretty much the same from earlier) using residuals instead of ?? looking for what fall's out of cook's distance = outlier in data set
 
 plot(O3.twosample2)
+par(mfrow = c(2,2)) #any time I plot plot 4 at once in 2 rows in 2 columns; have to run above line with it first to get all 4 at once
+
 ```
 
 ### Non-parametric equivalent of t-test: Wilcoxon test
@@ -114,10 +120,12 @@ plot(O3.twosample2)
 When we wish to avoid the assumption of normality, we can apply *distribution-free*, or non-parametric, methods in the form of the Wilcoxon rank sum (Mann-Whitney) test. The Wilcoxon test replaces the data by their rank and calculates the sum of the ranks for each group. Notice that the output of the Wilcoxon test is more limited than its parametric equivalent.
 
 ```{r}
+#just looking at raw data, takes data and ranks form lowest to highest and then comparing sum of ranks within each group
+
 O3.onesample.wilcox <- wilcox.test(EPAair$Ozone, mu = 50, alternative = "less")
-O3.onesample.wilcox
+O3.onesample.wilcox #gives v and p value, shows our data are significantly less than 50
 O3.twosample.wilcox <- wilcox.test(EPAair$Ozone ~ EPAair$Year)
-O3.twosample.wilcox
+O3.twosample.wilcox #gives you a w instead of a V - what does this mean???*****
 ```
 
 ### Visualization and interpretation challenge
@@ -129,6 +137,29 @@ Create three plots, each with appropriately formatted axes and legends. Choose a
 3. geom_violin of ozone divided by year, with the 0.5 quantile marked as a horizontal line. Add letters representing a significant difference between 2018 and 2019. 
 
 ```{r}
+#1
+Geomdens.plot <- ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
+  geom_density(fill = "red", alpha = 0.1) +
+  geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) + 
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) 
+
+print(Geomdens.plot)
+
+#2
+Geomboxplot <- ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
+  geom_density(fill = "grey") +
+  geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) + 
+  scale_color_manual( +
+  stat_summary(x = , y = )
+
+print(Geomboxplot)
+
+#3
+Geomviolinplot <- ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
+  geom_density(fill = "grey") +
+  geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) + 
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) +
+  stat_summary(x = , y = )
 
 
 ```

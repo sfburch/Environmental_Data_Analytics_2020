@@ -41,10 +41,10 @@ NiwotLitter <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.c
 View(NiwotLitter)
 
 #2
-class(TIDYPeterPaulNut$sampledate)
+class(TIDYPeterPaulChem$sampledate)
 
-TIDYPeterPaulNut$sampledate <- as.Date(TIDYPeterPaulNut$sampledate, format = "%Y-%m-%d")
-View(TIDYPeterPaulNut$sampledate)
+TIDYPeterPaulChem$sampledate <- as.Date(TIDYPeterPaulChem$sampledate, format = "%Y-%m-%d")
+View(TIDYPeterPaulChem$sampledate)
 
 
 ```
@@ -73,7 +73,7 @@ library(colormap)
 
 
 NvsP <-
-  ggplot(TIDYPeterPaulNut, aes(x = tp_ug, y = po4)) +
+  ggplot(TIDYPeterPaulChem, aes(x = tp_ug, y = po4)) +
   geom_point(aes(color = lakename)) + #have to have aesthetics bc it was looking for a color named lakename, which wouldn't work but works with aesthetic
   geom_smooth(method = lm, color = "black") +
   labs(x = "Phosphorous", y = "Phosphate",
@@ -124,9 +124,9 @@ print(TNboxplot)
 #5-4 Cowplot that combines all three
 
 threeplots <- plot_grid(Tempboxplot, TPboxplot, TNboxplot, Labels = c('Temp', 'TP', 'TN'),
-                        label_size = 10, nrow = 3, align = 'h', rel_heights = c(1.25, 1, 1))
+                    nrow = 3, align = 'v', rel_heights = c(1.25, 1, 1))
 
-view(threeplots)
+view(threeplots) #still issues
 ```
 
 Question: What do you observe about the variables of interest over seasons and between lakes? 
@@ -141,20 +141,22 @@ Question: What do you observe about the variables of interest over seasons and b
 
 #6
 NIWOneedles <- 
-  ggplot(subset(NiwotLitter, functionalGroup == "Needles"), #why double equal signs?
-         aes(x = collectDate, y = dryMass, color = nlcdClass)) +
-  geom_point()
+  ggplot(subset(NiwotLitter, functionalGroup == "Needles") + #why double equal signs?
+           geom_point(aes(x = collectDate, y = dryMass, color = nlcdClass)) +
+           scale_color_viridis_d(option = "magma", begin = 0.2, end = 0.8) +
+           theme(legend.position = "top") +
+           labs(x = "", y = "Dry Mass (g)", color = "Land Cover")
 
-print(NIWOneedles) #how to fix x axis so I can see all collectDates?
+print(NIWOneedles) #how to fix x axis so I can see all collectDates? niwo needles not found
 
 #7
 NIWOneedlesFacets <- 
-  ggplot(subset(NiwotLitter, functionalGroup == "Needles"), #why double equal signs?
-         aes(x = collectDate, y = dryMass) +
-  geom_point() +
-    facet_wrap(vars(nlcdClass), nrow = 3) #could not find facet wrap
+  ggplot(subset(NiwotLitter, functionalGroup == "Needles")) +
+  geom_point(aes(x = collectDate, y = dryMass)) +
+  facet_wrap(vars(nlcdClass), nrow = 3) +
+  labs(x = "", y = "Dry Mass (g)")
   
-print(NIWOneedlesFacets) #said niwoneedfacets not found...
+print(NIWOneedlesFacets) 
 
 ```
 
