@@ -38,7 +38,7 @@ dim(NTL.phys.data)
 class(NTL.phys.data$sampledate) #datafrmae and $ gives us specific column 
 # Format sampledate as date
 NTL.phys.data$sampledate <- as.Date(NTL.phys.data$sampledate, format = "%m/%d/%y")
-#refromat sample data to what R likes - above is in current format but this changes it to universally known date format, this is a good practice
+#reformat sample data to what R likes - above is in current format but this changes it to universally known date format, this is a good practice
 ```
 
 ## Data Wrangling

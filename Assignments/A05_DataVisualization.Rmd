@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Data Visualization"
-author: "Student Name"
+author: "Samantha Burch"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -29,18 +29,33 @@ The completed exercise is due on Tuesday, February 11 at 1:00 pm.
 
 ```{r}
 #1
+#load tidyverse and cowplot packages; upload NTL-LTER processed data files (Peter and Paul) and processed data file for Niwot
+library(tidyverse)
+library(cowplot)
+library(ggplot2)
 
+TIDYPeterPaulNut <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
+TIDYPeterPaulChemPhys <- read.csv("./Data/Processed/NTL-LTER_Lake_ChemistryPhysics_PeterPaul_Processed.csv")
+NiwotLitter <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv")
 
 #2
+class(TIDYPeterPaulNut$sampledate)
+
+TIDYPeterPaulNut$sampledate <- as.Date(TIDYPeterPaulNut$sampledate, format = "%Y-%m-%d")
+View(TIDYPeterPaulNut$sampledate)
 
 
 ```
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
-```{r}
+```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 
+mytheme <- theme_classic(base_size = 14) +
+  theme(axis.text = element_text(color = "blue"), 
+        legend.position = "top")
 
+theme_set(mytheme)
 ```
 
 ## Create graphs
@@ -49,8 +64,19 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 4. [NTL-LTER] Plot total phosphorus by phosphate, with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
 ```{r}
+library(viridisLite)
+library(viridis)
+library(RColorBrewer)
+library(colormap)
 
 
+NvsP <-
+  ggplot(TIDYPeterPaulNut, aes(x = tp_ug, y = po4)) +
+  geom_point(aes(color = lakename)) + #have to have aesthetics bc it was looking for a color named lakename, which wouldn't work but works with aesthetic
+  geom_smooth(method = lm, color = "black") +
+  labs(x = "Phosphorous", y = "Phosphate",
+       color = "Depth (m)", shape = "")
+print(NvsP)
 
 ```
 
@@ -59,6 +85,43 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 
 ```{r}
 
+#5-1 Temperature Boxplot
+Tempboxplot <-
+  ggplot(TIDYPeterPaulNut, aes(x = month, y = temperature_C, color = lakename)) +
+  geom_boxplot() +
+  labs(x = expression(paste("Month")),
+       y = expression(paste("Temperature" (degree~C))), color = "Lake") + 
+  scale_y_continuous(expand = c(0,0)) +
+  scale_color_viridis(discrete = TRUE, option = "viridis", end = 0.8) +
+  theme(legend.position = "none")
+print(Tempboxplot)
+
+#5-2 TP Boxplot
+TPboxplot <-
+  ggplot(TIDYPeterPaulNut, aes(x = month, y = tp_ug, color = lakename)) +
+  geom_boxplot() +
+  labs(x = expression(paste("Month")),
+       y = expression(paste("TP" ~ (mu*g / L))), color = "Lake") + 
+  scale_y_continuous(expand = c(0,0)) +
+  scale_color_viridis(discrete = TRUE, option = "viridis", end = 0.8) +
+  theme(legend.position = "none")
+print(TPboxplot)
+
+#5-3 TN Boxplot
+TNboxplot <-
+  ggplot(TIDYPeterPaulNut, aes(x = month, y = tn_ug, color = lakename)) +
+  geom_boxplot() +
+  labs(x = expression(paste("Month")),
+       y = expression(paste("TN" ~ (mu*g / L))), color = "Lake") + 
+  scale_y_continuous(expand = c(0,0)) +
+  scale_color_viridis(discrete = TRUE, option = "viridis", end = 0.8) +
+  theme(legend.position = "none")
+print(TNboxplot)
+
+#5-4 Cowplot that combines all three
+
+threeplots <- plot_grid(Tempboxplot, TPboxplot, TNboxplot, Labels = c('Temp', 'TP', 'TN'),
+                        label_size = 10, align = "vh", ncol = 1)
 
 ```
 
@@ -72,10 +135,25 @@ Question: What do you observe about the variables of interest over seasons and b
 
 ```{r}
 
+#6
+NIWOneedles <- 
+  ggplot(subset(NiwotLitter, functionalGroup == "Needles"), #why double equal signs?
+         aes(x = collectDate, y = dryMass, color = nlcdClass)) +
+  geom_point()
 
+print(NIWOneedles) #how to fix x axis so I can see all collectDates?
+
+#7
+NIWOneedlesFacets <- 
+  ggplot(subset(NiwotLitter, functionalGroup == "Needles"), #why double equal signs?
+         aes(x = collectDate, y = dryMass) +
+  geom_point() +
+    facet_wrap(vars(nlcdClass), nrow = 3)
+  
+print(NIWOneedlesFacets)
 
 ```
 
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
 
-> Answer: 
+> Answer: __ is more effective because
