@@ -31,14 +31,14 @@ theme_set(mytheme)
 ```
 
 ### One-way ANOVA
-A one-way ANOVA is the same test in practice as a two-sample t-test but for three or more groups. In R, we can  run the model with the function `lm` or `aov`, the latter of which which will allow us to run post-hoc tests to determine pairwise differences.
+A one-way ANOVA is the same test in practice as a two-sample t-test but for three or more groups. In R, we can  run the model with the function `lm` or `aov`, the latter of which which will allow us to run post-hoc tests to determine pairwise differences. Stands for analysis of variance. We're working with y = mx + b. y=Betax + alpha + E (epsilon is error); we don't have slopes, we're comparing a bunch of means (alpha values)
 
 Does total litter biomass differ among sites at the Niwot Ridge LTER?
 ```{r}
 # Wrangle the data
-Litter.Totals <- Litter %>%
-  group_by(plotID, collectDate, nlcdClass) %>%
-  summarise(dryMass = sum(dryMass))
+Litter.Totals <- Litter %>% #is this if/then? piping
+  group_by(plotID, collectDate, nlcdClass) %>% #nlcdclass to be used for later purposes
+  summarise(dryMass = sum(dryMass)) #will tkae everything that has group by above and then sum all of it by, will add up all the dry masses for each category and will do it for each set
 
 # Test for normality. 
 # Note: the important assumption for GLMs is normality of residuals, 
@@ -59,14 +59,14 @@ shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_067"])
 qqnorm(Litter.Totals$dryMass); qqline(Litter.Totals$dryMass)
 
 # Test for equal variance
-# ANOVA is robust against departures from equal variance.
+# ANOVA is robust against departures from equal variance. flag that what doesn't work??
 bartlett.test(Litter.Totals$dryMass ~ Litter.Totals$plotID)
 
 # Format ANOVA as aov
 Litter.Totals.anova <- aov(data = Litter.Totals, dryMass ~ plotID)
-summary(Litter.Totals.anova)
+summary(Litter.Totals.anova) #dry mass is y, the relationship we're testing
 
-# Format ANOVA as lm
+# Format ANOVA as lm; will start at 15.6), run both aov and lm objects
 Litter.Totals.anova2 <- lm(data = Litter.Totals, dryMass ~ plotID)
 summary(Litter.Totals.anova2)
 
@@ -77,11 +77,11 @@ plot(Litter.Totals.anova2)
 # Post-hoc test
 TukeyHSD(Litter.Totals.anova)
 
-# Extract groupings for pairwise relationships
+# Extract groupings for pairwise relationships, if the letters match they are not statistcially significant values between those groups
 Litter.Totals.groups <- HSD.test(Litter.Totals.anova, "plotID", group = TRUE)
 Litter.Totals.groups
 
-# Graph the results
+# Graph the results, if the letters match they are not statistcially significant values between those groups, 45 deg angle will help read the bottom on the x-axis, adjust vertically so it doesn't plot on top maximum value, set size of letters, you cna also assign labels has the be in exact order as data set (alphabetically); abc matches the first in the date set (which is 040=abc); abc is max value for that option, i.e. for 046 there were no significant outliers so it shows up right above the box and whisker plot
 Litter.Totals.plot <- ggplot(Litter.Totals, aes(x = plotID, y = dryMass)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -90,7 +90,7 @@ Litter.Totals.plot <- ggplot(Litter.Totals, aes(x = plotID, y = dryMass)) +
                          "d", "abcd", "cd", "d", "abcd", "abcd")) +
   labs(x = "Plot ID", y = "Dry Mass (g)") +
   ylim(0, 85)
-print(Litter.Totals.plot)
+print(Litter.Totals.plot) #total litter biomass differed signifacntly among sites at Niwot Ridge LTR (figure 1; ANOVA, F11,198 = 4.813, p < <0.00021)?? WHAT; 4.813 is the test statistic, not the p-value, p val is meaningless without this test value; p value is computed from this test statistic
 ```
 
 What information does the output give us? How might we report this information in a report?
@@ -112,7 +112,8 @@ Litter.kw
 # There are two functions to run the Dunn Test
 # dunn.test(Litter.Totals$dryMass, Litter.Totals$plotID, kw = T, 
 #           table = F, list = T, method = "holm", altp = T)   #From package dunn.test
-# dunnTest(Litter.Totals$dryMass, Litter.Totals$plotID)                    #From package FSA
+# dunnTest(Litter.Totals$dryMass, Litter.Totals$plotID) not going to run this one rn                 #From package FSA
+#would report chi statistic , p value, and degress of freedom
 ```
 
 ## TWO-WAY ANOVA
@@ -120,7 +121,7 @@ Litter.kw
 A two-way ANOVA allows us to examine the effects of two categorical explanatory variables on a continuous response variable. What if we wanted to know how litter masses varied across functional groups and land cover class?
 
 ```{r}
-# Format as aov
+# Format as aov, + shows us ??? two different predictable variables, a lot of data 
 Litter.anova.2way <- aov(data = Litter, dryMass ~ functionalGroup + nlcdClass)
 summary(Litter.anova.2way)
 
@@ -139,11 +140,11 @@ We may expect the effects of functional group and land cover to be dependent on 
 The output gives test statistics for each explanatory variable as well as the interaction effect of the explanatory variables. If the p-value for the interaction effect is less than 0.05, then we would consider the interaction among the explanatory variables to be significant.
 
 ```{r}
-# Format as aov
+# Format as aov, should look the same but no plus, we do a times sign (*) 
 Litter.anova.2way3 <- aov(data = Litter, dryMass ~ functionalGroup * nlcdClass)
 summary(Litter.anova.2way3)
 
-# Format as lm
+# Format as lm, we get into 
 Litter.anova.2way4 <- lm(data = Litter, dryMass ~ functionalGroup * nlcdClass)
 summary(Litter.anova.2way4)
 
@@ -158,14 +159,23 @@ Litter.interaction <- with(Litter, interaction(functionalGroup, nlcdClass))
 Litter.anova.2way5 <- aov(data = Litter, dryMass ~ Litter.interaction)
 
 Litter.groups <- HSD.test(Litter.anova.2way5, "Litter.interaction", group = TRUE)
-Litter.groups
+Litter.groups #many associated with group d
 
 # Plot the results
 # Edit this graph to make it more visually appealing.
 # Add letters to represent statistical groupings.
 Litter.anova.plot <- ggplot(Litter, aes(y = dryMass, x = nlcdClass, color = functionalGroup)) +
   geom_boxplot()
+
 print(Litter.anova.plot)
+
+Litter.anova.plot <- ggplot(Litter, aes(y = dryMass, x = nlcdClass, color = functionalGroup)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  stat_summary(geom = "text", fun.y = max, vjust = -1, size = 3.5,
+               label = c("d", "d", "d", "d", ) +
+  labs(x = "Plot ID", y = "Dry Mass (g)") +
+  ylim(0, 85)
 
 ```
 
