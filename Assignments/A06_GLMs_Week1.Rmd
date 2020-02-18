@@ -1,6 +1,6 @@
 ---
 title: "Assignment 6: GLMs week 1 (t-test and ANOVA)"
-author: "Student Name"
+author: "Samantha Burch"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -29,9 +29,17 @@ The completed exercise is due on Tuesday, February 18 at 1:00 pm.
 
 ```{r, message = FALSE}
 #1
+getwd()
+library(tidyverse)
+library(cowplot)
+library(agricolae)
+library(ggplot2)
 
+Litter <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
 
 #2
+Litter$sampledate <- as.Date(Litter$sampledate , format = "%Y-%m-%d")
+class(Litter$sampledate)
 
 ```
 
@@ -41,6 +49,10 @@ The completed exercise is due on Tuesday, February 18 at 1:00 pm.
 3. Wrangle your dataset so that it contains only surface depths and only the years 1993-1996, inclusive. Set month as a factor.
 ```{r}
 
+Litter.Wrangle <- Litter %>% 
+  filter(depth == 0 & year4 > 1992 & year4 < 1997) 
+
+Litter.Wrangle$month <- as.factor(Litter.Wrangle$month)
 
 ```
 
@@ -50,17 +62,37 @@ Peter Lake was manipulated with additions of nitrogen and phosphorus over the ye
 
 4. Which application of the GLM will you use (t-test, one-way ANOVA, two-way ANOVA with main effects, or two-way ANOVA with interaction effects)? Justify your choice.
 
-> Answer: 
+> Answer: I would run a two-way ANOVA first and then with interaction effects, because I will eventually want to examine both the individual effects and interactions of the explanatory variables. Moreover, I want to see if seasonality has an effect on nutrient levels of TN and TP.
 
 5. Run your test for TN. Include examination of groupings and consider interaction effects, if relevant.
 
 6. Run your test for TP. Include examination of groupings and consider interaction effects, if relevant.
 
 ```{r}
-#5
+#5 TN, When we run aov for TN w/ lakename and month, we do not see a significant interaction between lakename:month...but we do with TP(note the asterisk/star)
+Litter.2wayanova.TN <- aov(data = Litter.Wrangle, Litter.Wrangle$tn_ug ~ lakename + month)
+summary(Litter.2wayanova.TN)
+str(Litter.Wrangle)
 
+TukeyHSD(Litter.2wayanova.TN)
 
-#6
+#6 TP
+Litter.2wayanova.TP <- aov(data = Litter.Wrangle, tp_ug ~ lakename + month)
+summary(Litter.2wayanova.TP)
+
+TukeyHSD(Litter.2wayanova.TP)
+
+#Interaction effects
+Litter.2wayanova.TP.int <- aov(data = Litter.Wrangle, tp_ug ~ lakename * month) #only thing that changes is multiplication vs plus sign
+summary(Litter.2wayanova.TP.int)
+
+TP.int <- with(Litter.Wrangle, interaction(lakename, month))
+TP.anova.int <- aov(data = Litter.Wrangle, tp_ug ~ TP.int)
+
+TP.groups <- HSD.test(TP.anova.int, "TP.int", group = TRUE) #we do this bc it is significant, p value is less than .05
+
+Litter.2wayanova.TN.int <- aov(data = Litter.Wrangle, tn_ug ~ lakename * month) #only thing that changes is multiplication vs plus sign
+summary(Litter.2wayanova.TN.int)
 
 
 ```
@@ -70,10 +102,35 @@ Peter Lake was manipulated with additions of nitrogen and phosphorus over the ye
 8. Combine your plots with cowplot, with a common legend at the top and the two graphs stacked vertically. Your x axes should be formatted with the same breaks, such that you can remove the title and text of the top legend and retain just the bottom legend. 
 
 ```{r}
-#7
+#7.1 TN boxplot
+TNplot <-
+    ggplot(Litter.Wrangle, aes(y = tn_ug, x = as.factor(month), color = lakename)) +
+  geom_boxplot() +
+  labs(x = expression(paste("Month")),
+       y = expression(paste("TN" ~ (mu*g / L)))) +
+  scale_color_brewer(palette = "Dark2") +
+  ylim(0,2500) +
+  stat_summary(geom = "text", fun.y = max, vjust = -1, size = 4, position = position_dodge(.7), label = c("a", "b", "a", "b", "a", "b", "a", "b", "a", "b")) +
+  theme(legend.position = "none")
+print(TNplot)
 
+#7.2 TP boxplot
+TPplot <-
+    ggplot(Litter.Wrangle, aes(y = tp_ug, x = as.factor(month), color = lakename)) +
+  geom_boxplot() +
+  labs(x = expression(paste("Month")),
+       y = expression(paste("TP" ~ (mu*g / L)))) +
+  scale_color_brewer(palette = "Dark2") +
+  ylim(0,80) +
+  stat_summary(geom = "text", fun.y = max, vjust = -1, size = 4, position = position_dodge(.7), label = c("bcd", "cd", "d", "ab", "a", "d", "abc", "d", "abcd", "cd")) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+print(TPplot)
 
 #8
+TP_TN_plots <- plot_grid(TNplot, TPplot,
+                         align = "vh", ncol = 1)
+print(TP_TN_plots)
 
 ```
 
