@@ -1,6 +1,6 @@
 ---
 title: "Assignment 7: GLMs week 2 (Linear Regression and beyond)"
-author: "Student Name"
+author: "Samantha Burch"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -27,9 +27,23 @@ The completed exercise is due on Tuesday, February 25 at 1:00 pm.
 
 ```{r}
 #1
+getwd()
+library(tidyverse)
+library(lubridate)
+library(viridis)
+library(nlme)
+library(piecewiseSEM)
+
+PeterPaul.chem.physics <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv")
+
+NTL.chemphys <- read.csv("./Data/Processed/NTL-LTER_Lake_ChemistryPhysics_PeterPaul_Processed.csv")
 
 
-#2
+#2 Set theme
+mytheme <- theme_classic(base_size = 14) +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "top")
+theme_set(mytheme)
 
 ```
 
@@ -47,7 +61,10 @@ Research question: What is the best set of predictors for lake temperatures in J
 
 ```{r}
 #3
+NTL-LTR.Wrangle <- Litter %>% 
+  filter(depth == 0 & year4 > 1992 & year4 < 1997) 
 
+Litter.Wrangle$month <- as.factor(Litter.Wrangle$month)
 
 #4
 

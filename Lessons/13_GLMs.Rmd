@@ -50,11 +50,17 @@ summary(TNancova.main)
 TNancova.interaction <- lm(data = PeterPaul.chem.nutrients, tn_ug ~ lakename * depth)
 summary(TNancova.interaction)
 
-TNplot <- ggplot(PeterPaul.chem.nutrients, aes(x = depth, y = tn_ug, color = lakename)) + 
-  geom_point() + 
+TNplot <- ggplot(PeterPaul.chem.nutrients, aes(x = depth, y = tn_ug, color = lakename)) +
+  geom_point(alpha = .5) + 
   geom_smooth(method = "lm", se = FALSE) +
+  #scale_color_brewer(palette = "")
+  labs(x = "Depth (m)", y = expression(TN ~ (mu*g / L)), color = "") +
+  scale_color_manual(values = c("darkblue", "lightblue")) +
   xlim(0, 10)
 print(TNplot)
+
+#could take out lakename in labs
+#geom_point(aes(color = lakename) option but why???*****
 
 # Make the graph attractive
 ```
@@ -65,9 +71,9 @@ print(TNplot)
 
 The coefficients of a hierarchical model are divided into two categories: **fixed effects** and **random effects.** A **fixed effect** is a factor whose levels are experimentally determined or whose interest lies in the effects of each level (e.g., covariates, treatments, interactions). A **random effect** is a factor whose levels are sampled from a larger population, or whose interest lies in the variation among them rather than the specific effect of each level. In choosing whether you are dealing with a fixed or a random effect, consider the following questions: 
 
-  + Do you have a particular interest in the studied factor level?
+  + Do you have a particular interest in the studied factor level? in case of nitrogen, we were interested in this and depth level
 
-  + Have you included all possible levels in the study?
+  + Have you included all possible levels in the study? look at all locations (extrapoloate beyond my study??***)
   
   + Do you have interest in the variance among levels?
   
@@ -77,33 +83,35 @@ A common variable in hierarchical models is **space.** In many situations, we ma
 
 Let's think about the situation of temperature monitoring in the NTL-LTER lakes. We might be interested to know whether surface temperatures in July have increased over time in response to climate change. However, we know that there may be variability across lakes that may obscure the trend we see in temperature. We can set lake as a random effect to account for the across-lake variability and also enable us to extrapolate across lakes in northern Wisconsin.
 
-Let's wrangle our data and visualize a preliminary relationship between our variables of interest.
+Let's wrangle our data and visualize a preliminary relationship between our variables of interest. We're gonna use space as our example for our case. Use info from variability across the lakes to put into ourmodel to characterize the variability, looking at climate change.
 
 ```{r}
 NTL.summertemp <- 
   NTL.chem %>%
   select(lakename:temperature_C) %>%
-  #filter for Julian days in July and surface measurements
-  filter(daynum > 181 & daynum < 213 & depth == 0 ) %>%
+  #filter for Julian days in July and surface measurements, things change seasonally/cyclical we want consistent temps
+  filter(daynum > 181 & daynum < 213 & depth == 0 ) %>% #just days in July
   #code won't work if there are NAs
   na.exclude()
 
 NTLtemps <-
 ggplot(NTL.summertemp, aes(x = sampledate, y = temperature_C, color = lakename)) +
   geom_point() +
-  scale_color_viridis_d()
-print(NTLtemps)
+  scale_color_viridis_d() #works well for this number of categories
+print(NTLtemps) #we have a lot of variability, we're seeing the following trend: just a little increase but not super obvious so put variability into model to discern trends, we're just testing for linear trend in this example
 ```
 
 Next, we will build a hierarchical model. We will use the package `nlme` for our analyses. Another good package for running hierarchical, or mixed-effects, models is `lme4`. For the basic types of hierarchical models, these packages have about the same functionality. We will set year year (continuous) as a fixed effect and lake (categorical) as a random effect. Remember that we are interested in assessing if summer surface temperatures have increased in response to climate change and to account for the inter-lake variability within the model.
 
 
 ```{r}
+#set year as main effect of the model, and set variability as random effect in the mdoel (why????***)
 TempTest.mixed <- lme(data = NTL.summertemp,
-                     temperature_C ~ year4, 
-                     random = ~1|lakename)
-summary(TempTest.mixed)
+                     temperature_C ~ year4, #running temp by year (our one main effect)
+                     random = ~1|lakename) #random variable, | is grouped by
+summary(TempTest.mixed) #fixed effects: temp and yr; low p value for intercept and yr (been rounded to effetcively be zero); random effect doesn't have p value bc we're not actually testing its effect, we jsut want to incorporate its variability?
 rsquared(TempTest.mixed)
+
 
 # Compare the random effects model with the fixed effects model
 TempTest.fixed <- gls(data = NTL.summertemp,
@@ -111,18 +119,31 @@ TempTest.fixed <- gls(data = NTL.summertemp,
 summary(TempTest.fixed)
 
 anova(TempTest.mixed, TempTest.fixed)
-# The lower the AIC, the better.
-# The p-value tells us whether those models have a significantly different fit
+# The lower the AIC, the better. (mixed is lower than fixed) the lower the better the model fit
+# The p-value tells us whether those models have a significantly different fit between the two models so is this different????***
 
 NTL.tempmodel <-
 ggplot(NTL.summertemp, aes(x = year4, y = temperature_C, color = lakename)) +
   geom_point() +
   scale_color_viridis_d() +
-  geom_abline(intercept = -97.72, slope = 0.06) +
+  geom_abline(intercept = -97.72, slope = 0.06) + #just need to give it an int and a slope to draw a line; how did we find .06 slope?? it's value year 4; a significant predictor doesn't mean it's relevant, for each yr we're seeing increase in .06 degree increase in temperature
   # make it look better
   labs(x = "", y = expression("Temperature " ( degree~C)), color = "") +
-  theme(legend.spacing.x = unit(0, "cm"))
+  theme(legend.spacing.x = unit(0, "cm")) # helps labels be closer together on graph
 print(NTL.tempmodel)
+
+#or...
+NTL.tempmodel1 <-
+ggplot(NTL.summertemp, aes(x = year4, y = temperature_C)) +
+  geom_point(aes(color = lakename)) +
+  scale_color_viridis_d() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_abline(intercept = -97.72, slope = 0.06) +
+  labs(x = "", y = expression("Temperature " ( degree~C)), color = "") +
+  theme(legend.spacing.x = unit(0, "cm"))
+
+print(NTL.tempmodel1) #what are each of these lines??? black is mixed and blue is fixed
+
 ```
 
 Question: How would you interpret the collective results of your mixed effects model in the context of the study question?
