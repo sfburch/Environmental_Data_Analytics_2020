@@ -60,7 +60,7 @@ Research question: What is the best set of predictors for lake temperatures in J
 4. Run an AIC to determine what set of explanatory variables (year4, daynum, depth) is best suited to predict temperature. Run a multiple regression on the recommended set of variables. 
 
 ```{r}
-#3
+#3 first should be processed, and second part should be raw; NA omit removes any row within dataframe na; na exclude will omit any na from specific column or set of columns
 NTL-LTR.Wrangle <- Litter %>% 
   filter(depth == 0 & year4 > 1992 & year4 < 1997) 
 

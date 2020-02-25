@@ -19,19 +19,20 @@ editor_options:
 getwd()
 library(tidyverse)
 library(lubridate)
-#install.packages("trend")
+install.packages("trend") 
 library(trend)
-#install.packages("zoo")
+install.packages("zoo")
 library(zoo)
+library(ggplot2)
 
-# Set theme
+# Set theme she likes to use theme classic, what is the point of themes...base size of the font, 14 gives more readability to the text, helpful for visualizations
 mytheme <- theme_classic(base_size = 14) +
   theme(axis.text = element_text(color = "black"), 
         legend.position = "top")
 theme_set(mytheme)
 
 EnoDischarge <- read.csv("./Data/Processed/USGS_Site02085000_Flow_Processed.csv")
-EnoDischarge$datetime <- as.Date(EnoDischarge$datetime, format = "%Y-%m-%d")
+EnoDischarge$datetime <- as.Date(EnoDischarge$datetime, format = "%m/%d/%y") #pay attention to dates
 
 NCAir <- read.csv("./Data/Processed/EPAair_O3_PM25_NC1819_Processed.csv")
 NCAir$Date <- as.Date(NCAir$Date, format = "%Y-%m-%d")
@@ -49,15 +50,17 @@ Analysis of time series presents several opportunities. For environmental data, 
 * Has there been an increasing or decreasing **trend** in the response variable over time?
 * Can we **forecast** conditions in the future?
 
+In most env data, there are some common qs (the two above). Think about trends over time and can we forecast conditions into the future (we won't do as much forecasting today?).
+
 ### Challenges
 
 Time series datasets come with several caveats, which need to be addressed in order to effectively model the system. A few common challenges that arise (and can occur together within a single dataset) are: 
 
-* **Autocorrelation**: Data points are not independent from one another (i.e., the measurement at a given time point is dependent on previous time point(s))
-* **Data gaps**: Data are not collected at regular intervals, necessitating *interpolation* between measurements.
+* **Autocorrelation**: Data points are not independent from one another (i.e., the measurement at a given time point is dependent on previous time point(s)) temperature today may be good predictor of temp tmw; has important effect on how we use time series data
+* **Data gaps**: Data are not collected at regular intervals, necessitating *interpolation* between measurements. We may not sample temp on specfific/given day so think about adjusting data to sample on regular intervals
 * **Seasonality**: Cyclic patterns in variables occur at regular intervals, impeding clear interpretation of a monotonic (unidirectional) trend.
-* **Heteroscedasticity**: The variance of the time series is not constant over time
-* **Covariance**: the covariance of the time series is not constant over time
+* **Heteroscedasticity**: The variance of the time series is not constant over time (getting more or less variable over time which can present a problem), more for forecasting
+* **Covariance**: the covariance of the time series is not constant over time (neither increasing or decreasing?), more for forecasting
 
 ### Example dataset: Eno River Discharge
 
@@ -68,7 +71,7 @@ Let's look at what the dataset contains for mean daily discharge.
 ```{r}
 ggplot(EnoDischarge, aes(x = datetime, y = discharge.mean)) +
   geom_line() +
-  labs(x = "", y = expression("Discharge (ft"^3*"/s)"))
+  labs(x = "", y = expression("Discharge (ft"^3*"/s)")) #error: must be a finite number; many outliers
 ```
 
 Notice there are missing data from 1971 to 1985. Gaps this large are generally an issue for time series analysis, as we don't have a continuous record of data or a good way to characterize any variability that happened over those years. We will illustrate a few workarounds to address these issues. 
@@ -80,7 +83,7 @@ EnoDischarge.complete <- EnoDischarge %>%
   drop_na(discharge.mean)
 
 EnoDischarge.early <- EnoDischarge.complete %>%
-  filter(datetime < as.Date("1985-01-01"))
+  filter(datetime < as.Date("1985-01-01")) #this will fall into the early data set
 
 EnoDischarge.late <- EnoDischarge.complete %>%
   filter(datetime > as.Date("1985-01-01"))
@@ -90,45 +93,46 @@ EnoDischarge.late <- EnoDischarge.complete %>%
 
 A given time series can be made up of several component series: 
 
-1. A **seasonal** component, which repeats over a fixed known period (e.g., seasons of the year, months, days of the week, hour of the day)
+1. A **seasonal** component, which repeats over a fixed known period (e.g., seasons of the year, months, days of the week (traffic patterns), hour of the day (oxygen ocncentrations in a stream)) we'll work mainly with seasonal or monthly trends
 2. A **trend** component, which quantifies the upward or downward progression over time. The trend component of a time series does not have to be monotonic.
 3. An **error** or **random** component, which makes up the remainder of the time series after other components have been accounted for. This component reflects the noise in the dataset. 
 4. (optional) A **cyclical** component, which repeats over periods greater than the seasonal component. A good example of this is El Niño Southern Oscillation (ENSO) cycles, which occur over a period of 2-8 years.
 
-We will decompose the EnoDischarge.late data frame for illustrative purposes today. It is possible to run time series analysis on detrended data by subtracting the trend component from the data. However, detrending must be done carefully, as many environmental data are bounded by zero but are not treated as such in a decomposition. If you plan to use decomposition to detrend your data, please consult time series analysis guides before proceeding.
+We will decompose the EnoDischarge.late data frame (after year 1984) for illustrative purposes today. It is possible to run time series analysis on detrended data by subtracting the trend component from the data. However, detrending must be done carefully, as many environmental data are bounded by zero but are not treated as such in a decomposition. If you plan to use decomposition to detrend your data, please consult time series analysis guides before proceeding. You can de-trend a time series analysis, like how might something look if climate change was not a factor.
 
 We first need to turn the discharge data into a time series object in R. This is done using the `ts` function. Notice we can only specify one column of data and need to specify the period at which the data are sampled. The resulting time series object cannot be viewed like a regular data frame.
 
-Note: time series objects must be equispaced. In our case, we have daily data with no NAs in the data frame, so we don't need to worry about this. We will cover how to address data that are not equispaced later in the lesson.
+Note: time series objects must be equispaced (have a to have a number for eveyr day, or something for every month; time series will not preserve dates??). In our case, we have daily data with no NAs in the data frame, so we don't need to worry about this. We will cover how to address data that are not equispaced later in the lesson.
 
 ```{r}
-EnoDischarge.late_ts <- ts(EnoDischarge.late[[8]], frequency = 365)
+EnoDischarge.late_ts <- ts(EnoDischarge.late[[8]], frequency = 365) #ts is time series function; 8th column is dischargemean (what we're focusing on); we can subset, freqeuncy of 365 will generate daily data; what does the 8 mean?? 8th column of data set...shows up in our value section can't click on it (27k pieces of data, same number of rows but why? storing them in order) can't inspect 
 ```
 
-The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function.
+The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function. loess extracts certain components
 
 ```{r}
-?stl
-# Generate the decomposition
-EnoDischarge.late_Decomposed <- stl(EnoDischarge.late_ts, s.window = "periodic")
+?stl #help bar, not helpful...
+# Generate the decomposition, potential for seasonality and trend over time
+EnoDischarge.late_Decomposed <- stl(EnoDischarge.late_ts, s.window = "periodic") #specify window, periodic finds the seasonal data
 
-# Visualize the decomposed series. 
+# Visualize the decomposed series. trend is moving average (periods of time it's higher or lower) high point of 12-13 is not consistent in trend; time is over 35 years; no info about time represents; the boxes represent relative differences in axes relative size of the bar; data = actual measurements (seasonal + trend + ?); remainder - seasonal and trend only make up small amount of the data sclaes are small relative to data so most of data falls under remainder (what the hell is remainder?); not a strong seasonal trend
 plot(EnoDischarge.late_Decomposed)
 
-# We can extract the components and turn them into data frames
+# We can extract the components and turn them into data frames; grab solumns 1-3
 EnoDischarge.late_Components <- as.data.frame(EnoDischarge.late_Decomposed$time.series[,1:3])
+
 EnoDischarge.late_Components <- mutate(EnoDischarge.late_Components,
                       Observed = EnoDischarge.late$discharge.mean,     
-                      Date = EnoDischarge.late$datetime)
+                      Date = EnoDischarge.late$datetime) #created two new columns one called observed and date, can mutate on whole column bc same number of rows???
 
-# Visualize how the trend maps onto the data
+# Visualize how the trend maps onto the data, observed discharge by date then another geom line to specify tren compnentn to visualize how it measure up with trend over time, pink line shows trends i.e. when discharge is high
 ggplot(EnoDischarge.late_Components) +
-  geom_line(aes(y = Observed, x = Date),  size = 0.25) +
-  geom_line(aes(y = trend, x = Date), color = "#c13d75ff") +
-  geom_hline(yintercept = 0, lty = 2) +
+  geom_line(aes(y = Observed, x = Date),  size = 0.5) +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff", size = 1) +
+  geom_hline(yintercept = 0, lty = 2) + #specifying 0 discharge
   ylab(expression("Discharge (ft"^3*"/s)"))
 
-# Visualize how the seasonal cycle maps onto the data
+# Visualize how the seasonal cycle maps onto the data, plot seasonal instead of trend, seasonal dips down below zero consisenyl each year, doesn't care about it - shows negative values so interpret it carefully
 ggplot(EnoDischarge.late_Components) +
   geom_line(aes(y = Observed, x = Date),  size = 0.25) +
   geom_line(aes(y = seasonal, x = Date), color = "#c13d75ff") +
@@ -142,11 +146,11 @@ Note that the decomposition can yield negative values when we apply a seasonal a
 
 ## Trend analysis
 
-Two types of trends may be present in our time series dataset: **monotonic** or **step**. Monotonic trends are a gradual shift over time that is consistent in direction, for example in response to land use change. Step trends are a distinct shift at a given time point, for example in response to a policy being enacted. 
+Two types of trends may be present in our time series dataset: **monotonic** or **step**. Monotonic trends are a gradual shift over time that is consistent in direction, for example in response to land use change. Step trends are a distinct shift at a given time point, for example in response to a policy being enacted. Monotonic could be land use change bc happening more gradually
 
 ### Step trend analysis
 
-Step trend analysis works well for upstream/downstream and before/after study design. We will not delve into each of these methods during class, but specific tests are listed below for future reference. 
+Step trend analysis works well for upstream/downstream and before/after study design. We will not delve into each of these methods during class, but specific tests are listed below for future reference. Might be assoicated with policy change and we saw total response change in X. up and downstream river data 
 
 Note: ALWAYS look into the assumptions of a given test to ensure it matches with your data and with your research question.
 
@@ -170,9 +174,9 @@ var.test(EnoDischarge.early$discharge.mean, EnoDischarge.late$discharge.mean)
 wilcox.test(EnoDischarge.early$discharge.mean, EnoDischarge.late$discharge.mean)
 ```
 
-How might you interpret the results of this test, and how might you represent them graphically?
+How might you interpret the results of this test, and how might you represent them graphically? 
 
->
+>Mean daily discharge in Eno River from 1927-1971 was significantly higher than ,ean dialydischarge from 1985-2019 (Wilcox test, W = 1.17*10^, p < 0.0001); could use density or box plot to visualize
 
 ### Monotonic trend analysis
 
