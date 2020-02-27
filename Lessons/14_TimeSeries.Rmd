@@ -184,17 +184,17 @@ In general, detecting a monotonic trend requires a long sequence of data with fe
 
 Adjusting the data may be necessary to fulfill the assumptions of a trend test. These adjustments include **aggregation**, **subsampling**, and **interpolation**. What do each of these mean, and why might we want to use them?
 
-> aggregation: 
+> aggregation: Taking data points and making one data point from them. Could aggregate inot longer timespan; good backdoor way to get around data gaps 28 days of a month you could take summary of it to get general sense??
 
-> subsampling: 
+> subsampling: use the least out of time series analyses; could take first day of every month
 
-> interpolation: 
+> interpolation: predicting data gaps - more below:
 
-Common interpolation methods: 
+Common interpolation methods: options to go with one of these three, another method isn't on here
 
 * **Piecewise constant**: also known as a "nearest neighbor" approach. Any missing data are assumed to be equal to the measurement made nearest to that date (could be earlier or later).
-* **Linear**: could be thought of as a "connect the dots" approach. Any missing data are assumed to fall between the previous and next measurement, with a straight line drawn between the known points determining the values of the interpolated data on any given date.
-* **Spline**: similar to a linear interpolation except that a quadratic function is used to interpolate rather than drawing a straight line.
+* **Linear**: could be thought of as a "connect the dots" approach. Any missing data are assumed to fall between the previous and next measurement, with a straight line drawn between the known points determining the values of the interpolated data on any given date. whatevr our data value would be would between closest points?? the missing day would be mean of previous day and the next day
+* **Spline**: similar to a linear interpolation except that a quadratic function is used to interpolate rather than drawing a straight line. smooth line
 
 #### Example: interpolation
 
@@ -206,44 +206,44 @@ NCOzone <-
 ggplot(NCAir, aes(x = Date, y = Ozone)) +
   geom_point() +
   facet_wrap(vars(Site.Name))
-print(NCOzone)
+print(NCOzone) #13 sites, 2 yrs of data, some have gaps and some are ocntinuous, should we interpolate across seasonal gaps? NO, bc many of them see this time of yr we see our low pts so if we did it across months, we'd probably end up with a straight line; would be good if we had a shorter gap
 
 NCPM2.5 <-
 ggplot(NCAir, aes(x = Date, y = PM2.5)) +
   geom_point() +
   facet_wrap(vars(Site.Name))
-print(NCPM2.5)
+print(NCPM2.5) #same story as above, we see less sseaonality and season gaps, and some data has not been reported for the year
 
-summary(NCAir$Site.Name)
+summary(NCAir$Site.Name) #will give me how many samples (how many rows) in data frame; should have 730 (bc two yrs (365 + 365) samples but some have fewer; garinger hs is good example bc we have 8 missing days to acct for
 
 NCAir.Garinger <- NCAir %>%
   filter(Site.Name == "Garinger High School")
 
-GaringerOzone <-
-ggplot(NCAir.Garinger, aes(x = Date, y = Ozone)) +
+#make gg plot
+GaringerOzone <- ggplot(NCAir.Garinger, aes(x = Date, y = Ozone)) +
   geom_point() 
-print(GaringerOzone)
+print(GaringerOzone) #still missing data so do the below, we know there's seasonality
 
-# na.approx function fills in NAs with a linear interpolation
+# na.approx function fills in NAs with a linear interpolation (if we have missing day it'll take mean of two days and draw a straight line btwn them)
 # Spline interpolation can also be specified as an alternative
 # Piecewise constant interpolation can be done with na.aggregate
-NCAir.Garinger$Ozone <- na.approx(NCAir.Garinger$Ozone)
+NCAir.Garinger$Ozone <- na.approx(NCAir.Garinger$Ozone) #do na approx on both columns, NA values are included in data frame and this gets rid of them for this column
 NCAir.Garinger$PM2.5 <- na.approx(NCAir.Garinger$PM2.5)
 
 GaringerOzone.interpolated <-
 ggplot(NCAir.Garinger, aes(x = Date, y = Ozone)) +
   geom_point() 
-print(GaringerOzone.interpolated)
+print(GaringerOzone.interpolated) #this filled in some gaps (look between the two ggplots we created)
 ```
 
 ### Monotonic trend analysis, continued
 
 Specific tests for monotonic trend analysis are listed below, with assumptions and tips: 
 
-* **linear regression**: no seasonality, fits the assumptions of a parametric test. Function: `lm`
-* **Mann-Kendall**: no seasonality, non-parametric, no temporal autocorrelation, missing data allowed. Function: `mk.test` (package: trend)
+* **linear regression**: no seasonality, fits the assumptions of a parametric test. Function: `lm`; sub out time for what????; works when we have equi spaced data and data is unidirectional (yrly avergaes and totals of something; just shows for ex if something is increasign over time)
+* **Mann-Kendall**: no seasonality, non-parametric, no temporal autocorrelation (temp autocorr: pts that are more related to each other, further away you get in time the worse?), missing data allowed. Function: `mk.test` (package: trend)
 * **modified Mann-Kendall**: no seasonality, non-parametric, accounts for temporal autocorrelation, missing data allowed. Function: `mmky` and `mmkh` (package: modifiedmk)
-* **Seasonal Mann-Kendall**: seasonality, non-parametric, no temporal autocorelation, identical distribution. Function: `smk.test` (package: trend)
+* **Seasonal Mann-Kendall**: seasonality, non-parametric, no temporal autocorelation, identical distribution. Function: `smk.test` (package: trend) allows for seasonality in data, have to be identically distributed
 
 The packages trend, Kendall, and modifiedmk also include other modifications to monotonic trend tests. Look into the documentation for these packages if you are applying a special case.
 
@@ -255,43 +255,44 @@ Remember that we noticed in the decomposition that the Eno River discharge data 
 
 The Seasonal Mann-Kendall assumes no temporal autocorrelation, but we know that daily data is prone to temporal autocorrelation. In this case, we may want to collapse our data down into monthly data so that we can (1) reduce temporal autocorrelation and (2) break down the potential seasonal trend into more interpretable components. 
 
-We will calculate the mean monthly discharge for this dataset, rather than calculating the total monthly discharge or subsampling a given day in each month. Why did we make this decision?
+We will calculate the mean monthly discharge for this dataset, rather than calculating the total monthly discharge or subsampling a given day in each month. Why did we make this decision? collapse varibaility and come up with one value by aggreg ratehr than subsampling????
 
 ```{r}
 EnoDischarge.late.monthly <- EnoDischarge.late %>%
   mutate(Year = year(datetime), 
          Month = month(datetime)) %>%
   group_by(Year, Month) %>%
-  summarise(Discharge = mean(discharge.mean)) 
+  summarise(Discharge = mean(discharge.mean)) #why mean instead of median bc it will account for variability, sum could be good too (months won't have even days in them, so feb wuld be lowest value)? things at middle of data set, now we only have 3 columns in data but we're missing what? the actual day (just yr and month is not enough)
   
+#make new column called date, created this as class of date, then paste whateevr info we have from year, then month, then value of 1 (day), separte each number with dash, then format it), but don't use in time series analysis???? don't use dat column in the analyssi bc it's asuming it's first of month but we're just using an avg for the month
 EnoDischarge.late.monthly$Date <- as.Date(paste(EnoDischarge.late.monthly$Year, 
                                                 EnoDischarge.late.monthly$Month, 
                                                 1, sep="-"), 
                                           format = "%Y-%m-%d")
 
-# Generate time series (smk.test needs ts, not data.frame)
+# Generate time series (smk.test needs ts, not data.frame) call it something new, ts function to create times seires; discharge column; specify a frequency 12 months in the yr and freq of that seasonality should come back aorund eevry 12 times in the data frame; starting in 1985 the 10th month and eneding in 12th month in 2019, include first day of month; ts won't contain any of that info so have to include it here
 EnoDischarge.late.monthly.ts <- ts(EnoDischarge.late.monthly$Discharge, frequency = 12, 
                         start = c(1985, 10, 1), end = c(2019, 12, 1))
-# Run SMK test
-EnoDischarge.late.trend <- smk.test(EnoDischarge.late.monthly.ts)
+
+# Run SMK test, run it on ts object 
+EnoDischarge.late.trend <- smk.test(EnoDischarge.late.monthly.ts) 
 
 # Inspect results
-EnoDischarge.late.trend
-summary(EnoDischarge.late.trend)
+EnoDischarge.late.trend #call up
+summary(EnoDischarge.late.trend) #more detailed look, null is that there is significant trend over time, computes s and variance of s which is just diff between time steps don't need to interpet though...all p avlaues above.05 so no, not significant
 
 EnoDischarge.monthly <-
 ggplot(EnoDischarge.late.monthly, aes(x = Date, y = Discharge)) +
   geom_point() +
   geom_line()
-print(EnoDischarge.monthly)
+print(EnoDischarge.monthly) #can't discern trend over time through this bc there's so much variability, no signficiant trend in this data
 ```
 
 What would we conclude based on these findings? 
 
->
+>can't discern trend over time through this bc there's so much variability, no signficiant trend in this data. subsampling may prove better?? check... aggregate by season potentially? overlay with something else to understand outside factors; graph moving average? would be easier to look at; report z and p?? both don't have degrees of freedom for this reporting
  
 If a significant trend was present, we could compute a **Sen's Slope** to quantify that trend (`sens.slope` function in the trend package).
-
 
 
 ## Forecasting with Autoregressive and Moving Average Models (ARMA)

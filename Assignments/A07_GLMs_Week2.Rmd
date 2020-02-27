@@ -129,7 +129,7 @@ rsquared(Litter.Mixed)
 
 b. continued... How much more variance is explained by adding the random effect to the model? 
 
-> Answer: ~2 % (2.5%)
+> Answer: ~2 % 
 
 c. Run the same model without the random effect.
 d. Run an anova on the two tests. 
