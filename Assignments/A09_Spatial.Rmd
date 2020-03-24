@@ -1,6 +1,6 @@
 ---
 title: "Assignment 9: Spatial Analysis"
-author: "Student Name"
+author: "Samantha Burch"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -39,3 +39,107 @@ Here are your three options:
 * Tabular data that correpond to one of the layers, specified as an aesthetic (e.g., total litter biomass at each trap, land cover class at each trap)
 
 Hint: One package that may come in handy here is the `maps` package, which contains several options for basemaps that cover political and geologic boundaries.
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+```{r check.R.version}
+version$version.string
+```
+
+```{r load.libraries, error=FALSE, message=FALSE, warning=FALSE}
+# some tidyverse packages
+library("readr")
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+library("purrr")
+# some spatial data packages
+library("sf")
+library("ggmap")
+# some other packages
+library("here")
+```
+
+```{r check.pdf}
+pdf(here("outputs", "pdf_test.pdf"), width = 11, height = 8.5)
+ggplot(data = cars) +
+  geom_point(aes(x = dist, y = speed))
+dev.off()
+```
+
+```{r read.in.some.data}
+basins_nf_seplains_raw <- st_read(here("data", "spatial_data", "bas_nonref_SEPlains.shp"))
+
+```
+
+```{r activity.load.data}
+# add your code here
+gages_raw <- st_read(here("data", "spatial_data", "gagesII_9322_sept30_2011.shp"))
+
+southeast_state_bounds_raw <- st_read(here("data", "spatial_data", "southeast_state_bounds.shp"))
+
+my_tabular_data_raw <- read.csv(here("data", "tabular_data", "conterm_climate.txt"))
+```
+
+```{r adding }
+# select North Carolina (NC)
+nc_state_bounds_geom <- southeast_state_bounds %>%
+  filter(NAME == "North Carolina") %>%
+  st_geometry()
+
+# select watersheds that intersect with NC bounds
+# add your code here
+nc_basins_nf_seplains <- basins_nf_seplains %>%
+  st_intersection(nc_state_bounds_geom)
+
+# select gages that fall within NC bounds
+# add your code here
+nc_gages <- gages %>%
+  st_intersection(nc_state_bounds_geom)
+
+
+```
+
+```{r activity.checking.operations} 
+# Combo Map (using different pieces of maps from lesson)
+pdf(here("outputs", "spatial_operations_test_fig.pdf"), width = 11, height = 8.5)
+ggplot() +
+  geom_sf(data = nc_state_bounds_geom, fill = NA) +
+  geom_sf(data = nc_basins_nf_seplains, alpha = 0.25) +
+  geom_sf(data = nc_gages, lwd = 1) +
+  geom_sf(data = nc_gages_climate, aes(color = T_AVG_SITE), size = 3, ) +
+  scale_color_gradient(low = "yellow", high = "red") +
+  labs(color = "Gage Avg. Annual Air Temperature (celsius)") +
+  geom_sf(data = nc_state_bounds_geom, fill = NA) +
+  theme_bw()
+dev.off()
+
+pdf(here("outputs", "spatial_operations_activity_2_Updates.pdf"), width = 11, height = 8.5)
+ggplot() +
+  geom_sf(data = nc_state_bounds_geom, fill = NA) +
+  geom_sf(data = nc_basins_nf_seplains, alpha = 0.25, color = "grey") +
+  geom_sf(data = nc_gages, lwd = 1) +
+  scale_color_gradient(low = "yellow", high = "red",
+                       labels = c("10 ° C", "12° C", "14° C ", "16° C")) +
+  geom_sf(data = nc_gages_climate, aes(color = T_AVG_SITE), size = 1) +
+  #scale_color_gradient(low = "yellow", high = "red") +
+  labs(color = "Gage Avgerage Annual Air Temperature (Celsius)" ) +
+  geom_sf(data = nc_state_bounds_geom, fill = NA) +
+  theme_bw()
+dev.off()
+
+
+# join the tabular data to nc_gages
+nc_gages_climate <- nc_gages %>%
+  left_join(my_tabular_data_raw, by = "STAID")
+
+class(nc_gages$STAID)
+
+# check that it worked
+names(nc_gages_climate)
+
+```
+```
+

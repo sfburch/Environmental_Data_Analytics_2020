@@ -722,7 +722,6 @@ Can you reproduce Figure 1b?
 # map function on data and select only true values
 # add your code here
 
-
 # look at result
 # add your code here
 # shows first 6 results (they are all FALSE)

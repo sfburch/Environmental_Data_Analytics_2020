@@ -10,7 +10,7 @@ editor_options:
 
 ## Objectives
 1. Discuss data challenges in the environmental field
-2. Evaluate how data management fits into the pipeline of data analysis
+2. Evaluate how data management fits into the pipeline of data analysis --- SB: scrape data from online is goal 
 3. Access data via online and R-based databases
 
 
@@ -18,7 +18,7 @@ editor_options:
 
 Environmental fields are experiencing massive changes related to data. Many new challenges exist today, including: 
 
-* Big data: volume, variety, frequency
+* Big data: volume, variety, frequency (SB: it's growing!)
 * Open data
 * Long-term records
 * Interconnected networks
@@ -28,14 +28,15 @@ Environmental fields are experiencing massive changes related to data. Many new 
 
 Adapted from the [DataOne data management primer](https://www.dataone.org/sites/all/documents/DataONE_BP_Primer_020212.pdf) and the [University of Alabama Library guide on data management](http://www.lib.ua.edu/wiki/sura/index.php/A_Step-By-Step_Guide_to_Data_Management)
 
+---SB: CREATE AT THE START OF THE PROJECT (happens before you collect data)---
 1. Choose and assemble data management toolbox
 2. Create (and revisit) your data management plan
   + Volume and type of data
   + File and folder structures/formats
-  + Roles and responsibilities of personnel
-  + Version control
-  + Access
-  + Preservation
+  + Roles and responsibilities of personnel - SB: note this in final too
+  + Version control - SB: Github is commonly used in data science
+  + Access - SB: public resposi? or do you need access?
+  + Preservation - SB: what are long-term options?
 3. Collect data
 4. [Quality assurance/quality control (QA/QC)](https://www.dataone.org/best-practices/ensure-basic-quality-control)
 5. Describe and document data
