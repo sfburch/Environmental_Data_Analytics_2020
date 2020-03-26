@@ -17,9 +17,9 @@ editor_options:
 getwd()
 library(tidyverse)
 library(viridis)
-#install.packages("rvest")
+install.packages("rvest")
 library(rvest)
-#install.packages("ggrepel")
+install.packages("ggrepel")
 library(ggrepel)
 
 # Set theme
@@ -36,9 +36,9 @@ Methods for scraping data (from [Analytics Vidhya data scraping guide](https://w
 
 * Manual copy-paste
 * API (retrieve data from standard code; data must be in prescribed format) 
-* DOM parsing
+* DOM parsing: we'll be using this today
 
-We will be scraping today using DOM parsing. First, we need to install a tool on our web browser to be able to call the web text we need. The tool is called a Selector Gadget, which for Chrome can be found [here](https://chrome.google.com/webstore/detail/selectorgadget/mhjhnkcfbdhnjickkkdbjoemdmbfginb?hl=en). 
+We will be scraping today using DOM parsing. First, we need to install a tool on our web browser to be able to call the web text we need. The tool is called a Selector Gadget, which for Chrome can be found [here](https://chrome.google.com/webstore/detail/selectorgadget/mhjhnkcfbdhnjickkkdbjoemdmbfginb?hl=en). she considers this one the most helpful
 
 Now that our selector gadget is in operation, we can start the data scraping process with the `rvest` package. 
 
@@ -53,10 +53,10 @@ The U.S. Environmental Protection Agency maintains a [website](https://www.epa.g
 However, these tables aren't in a usable form to be able to analyze and visualize in R. Copying and pasting this information would be tedious, so let's explore the ability for `rvest` to scrape the data directly. (Note: I realize there is a data download link for each of these tables in the webpage; this is meant to be an illustrative exercise).
 
 ```{r}
-# Specify website to be scraped
+# Specify website to be scraped, tables with data in them with river quality assessment, nutrient related causes, lakes and reservoirs that are impaired too and estuaries too; can also just download the data there
 url <- "https://www.epa.gov/nutrient-policy-data/waters-assessed-impaired-due-nutrient-related-causes"
 
-# Reading the HTML code from the website
+# Reading the HTML code from the website; this is making a new object; have to specify parts of webpage, use selector gadget in chrome; green or yellow = what is selected; red and white = not selected; trial and error of selecting and deselecting
 webpage <- read_html(url)
 ```
 
@@ -76,11 +76,16 @@ Now that R knows which website we want to access, we need to tell it what conten
 6. Copy the text that appears in the window at the bottom of the screen and insert it in the following lines of code.
 ```{r}
 # Grab specific components of the website
-State <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(1)") %>% html_text()
-Estuaries.Assessed.mi2 <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(2)") %>% html_text()
+State <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(1)") %>% html_text() #notice we have 23 character class pieces, shows up in values
+
+Estuaries.Assessed.mi2 <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(2)") %>% html_text() #read the page, then the specific nodes, then the text; they are all charcter strings which is good bc they all need to be the same
+
 Estuaries.Assessed.percent <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(3)") %>% html_text()
+
 Estuaries.Impaired.mi2 <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(4)") %>% html_text()
+
 Estuaries.Impaired.percent <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(5)") %>% html_text()
+
 Estuaries.Impaired.percent.TMDL <- webpage %>% html_nodes("table:nth-child(20) td:nth-child(6)") %>% html_text()
 
 # Note: each of these objects has 23 items in it; consistency is good!
@@ -116,7 +121,7 @@ Estuary$Estuaries.Impaired.percent.TMDL <- str_replace(Estuary$Estuaries.Impaire
 Estuary$Estuaries.Impaired.percent.TMDL <- str_replace(Estuary$Estuaries.Impaired.percent.TMDL, 
                                                        pattern = "([±])", replacement = "")
 
-# Does R know that the numeric columns are numbers?
+# Does R know that the numeric columns are numbers? we're changing everything from character to numeric
 str(Estuary)
 Estuary$Estuaries.Assessed.mi2 <- as.numeric(Estuary$Estuaries.Assessed.mi2)
 Estuary$Estuaries.Assessed.percent <- as.numeric(Estuary$Estuaries.Assessed.percent)
@@ -143,32 +148,17 @@ Note: the fill aesthetic shows up gray for some states. Why?
 
 ggplot(Estuary, aes(x = Estuaries.Assessed.percent, y = Estuaries.Impaired.percent, 
                     fill = Estuaries.Impaired.percent.TMDL)) +
-  #
-  geom_point(shape = 21, size = 2, alpha = 0.8) 
-  #+ 
-  #
-  #scale_fill_viridis_c(option = "inferno", begin = 0.2, end = 0.9, direction = -1) +
-  # 
-  #geom_label_repel(aes(label = State), nudge_x = -5, nudge_y = -5, 
-  #                 size = 3, alpha = 0.8) +  
-  #
-  # labs(x = "% Estuaries Assessed (%)",
-  #      y = "% Estuaries Impaired (%)", 
-  #      fill = "% Impaired with TMDL")  
+  geom_point(shape = 21, size = 2, alpha = 0.8) + 
+  scale_fill_viridis_c(option = "inferno", begin = 0.2, end = 0.9, direction = -1) +
+  geom_label(aes(label = State), nudge_x = -5, nudge_y = -5,                  size = 3, alpha = 0.8) +  
+  labs(x = "% Estuaries Assessed (%)", y = "% Estuaries Impaired (%)", fill = "% Impaired with TMDL")
+#the only difference is that only 4 states are labeled in 2nd one; number not percent in second one
 
 ggplot(Estuary, aes(x = Estuaries.Assessed.mi2, y = Estuaries.Impaired.mi2, 
                     fill = Estuaries.Impaired.percent.TMDL)) +
-  geom_point(shape = 21, size = 2, alpha = 0.8) 
-  #+ 
-  #
-  # scale_fill_viridis_c(option = "inferno", begin = 0.2, end = 0.9, direction = -1) +
-  #
-  # geom_label_repel(data = subset(Estuary, State %in% c("Virginia", "Florida", "Louisiana", "Texas")), 
-  #            aes(label = State), nudge_x = -500, nudge_y = 200) +
-  #
-  # labs(x = expression("Estuary Area Assessed (mi"^"2"*")"),
-  #      y = expression("Estuary Area Impaired (mi"^"2"*")"), 
-  #      fill = "% Impaired with TMDL")
+  geom_point(shape = 21, size = 2, alpha = 0.8) + 
+  scale_fill_viridis_c(option = "inferno", begin = 0.2, end = 0.9, direction = -1) +
+  geom_label_repel(data = subset(Estuary, State %in% c("Virginia", "Florida", "Louisiana", "Texas")), aes(label = State), nudge_x = -500, nudge_y = 200) + labs(x = expression("Estuary Area Assessed (mi"^"2"*")"), y = expression("Estuary Area Impaired (mi"^"2"*")"), fill = "% Impaired with TMDL")
 
 
 ```
