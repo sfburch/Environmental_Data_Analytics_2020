@@ -16,7 +16,7 @@ editor_options:
 
 ## BASIC R MARKDOWN DOCUMENT STRUCTURE
 
-1. **YAML Header** surrounded by --- on top and bottom
+1. **YAML Header** surrounded by --- on top and bottom; yet another markdown language
     + YAML templates include options for html, pdf, word, markdown, and interactive
     + More information on formatting the YAML header can be found in the cheat sheet
 2. **R Code Chunks** surrounded by ``` on top and bottom
@@ -25,9 +25,17 @@ editor_options:
     + Chunk options allow for flexibility when the code runs and when the document is knitted
 3. **Text** with formatting options for readability in knitted document
 
-A handy cheat sheet for R markdown can be found [here](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf). Another one can be found [here](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf).
+A handy cheat sheet for R markdown can be found - use in the challenge today [here](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf). Another one can be found [here](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf).
 
 ## WHY R MARKDOWN?
+
+* *italic*
+** **bold**
+* **Documentation** of data pipeline steps
+* Store *code*, *visulaizations*, and *text* in one place
+* **Organize** code into sections
+* Aesthetically pleasing
+* Manage changes in a *reproducible* fashion
 
 <Fill in our discussion below with bullet points. Use italics and bold for emphasis (hint: use the cheat sheets to figure out how to make bold and italic text).>
 
@@ -35,10 +43,21 @@ A handy cheat sheet for R markdown can be found [here](https://www.rstudio.com/w
 
 Create a table below that details the example datasets we have been using in class. The first column should contain the names of the datasets and the second column should include some relevant information about the datasets. (Hint: use the cheat sheets to figure out how to make a table in Rmd)
 
+can't run it, just shows up knitted only
+
+Dataset Name       | Dataset Notes
+------------------ | -------------
+Peter Paul Lake    | Pollution
+Cell 3             | Cell 4
+
 
 ## R CHUNK EDITING CHALLENGE
 ### Installing packages
-Create an R chunk below that installs the package `knitr`. Instead of commenting out the code, customize the chunk options such that the code is not evaluated (i.e., not run). 
+Create an R chunk below that installs the package `knitr`. Instead of commenting out the code, customize the chunk options such that the code is not evaluated (i.e., not run). echo is print if true?
+
+```{r eval=FALSE, echo=TRUE}
+install.packages("knitr")
+```
 
 
 ### Setup
@@ -48,6 +67,18 @@ Load the NTL-LTER_Lake_Nutrients_Raw dataset, display the head of the dataset, a
 
 Customize the chunk options such that the code is run but is not displayed in the final document.
 
+```{r Setup, message=TRUE, msg=FALSE}
+getwd()
+library('tidyverse')
+library('knitr')
+
+```
+
+```{r, echo=FALSE}
+NTL.Nutrients.raw <- read.csv("./Data/Raw/NTL-LTER_Lake_Nutrients_Raw.csv")
+
+
+```
 
 ### Data Exploration, Wrangling, and Visualization
 Create an R chunk below to create a processed dataset do the following operations: 
