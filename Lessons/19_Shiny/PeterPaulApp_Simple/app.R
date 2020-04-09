@@ -2,7 +2,7 @@
 library(shiny)
 library(tidyverse)
 
-#### Load data ----
+#### Load data ---- don't actually run the code!!!!! just run the app
 nutrient_data <- read_csv("Data/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
 nutrient_data$sampledate <- as.Date(nutrient_data$sampledate, format = "%Y-%m-%d")
 nutrient_data <- nutrient_data %>%
@@ -48,7 +48,7 @@ server <- function(input, output) {
   }
 
 
-#### Create the Shiny app object ----
+#### Create the Shiny app object ---- simple example where it will load the app
 shinyApp(ui = ui, server = server)
 
 

@@ -11,7 +11,7 @@ nutrient_data <- nutrient_data %>%
   select(lakename, sampledate:po4)
 
 #### Define UI ----
-ui <- fluidPage(theme = shinytheme("yeti"),
+ui <- fluidPage(theme = shinytheme("cerulean"),
   titlePanel("Nutrients in Peter Lake and Paul Lake"),
   sidebarLayout(
     sidebarPanel(
@@ -26,7 +26,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
       checkboxGroupInput(inputId = "fill",
                          label = "Depth ID",
                          choices = unique(nutrient_data$depth_id),
-                         selected = c(1, 7)),
+                         selected = c(1, 3)),
       
       # Select lake
       checkboxGroupInput(inputId = "shape",
