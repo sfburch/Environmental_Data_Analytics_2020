@@ -6,8 +6,8 @@ output:
     number_sections: yes
 geometry: margin=2.54cm
 title: "Insert title of project here"
-subtitle: "Web address for GitHub repository"
-author: "Name"
+subtitle: https://github.com/sfburch/SBurchFinalProject2020
+author: Samantha Burch
 fontsize: 12pt
 mainfont: Times New Roman
 
@@ -46,7 +46,7 @@ mainfont: Times New Roman
 \newpage
 
 # Exploratory Analysis 
-
+what they need or want before actual analysis; distributions of variables of interest; time series sampling over time; potential relationships between variables; here's the intro to the data set, might not be statsistical but help someone orient themselves, provide rationale
 
 
 \newpage

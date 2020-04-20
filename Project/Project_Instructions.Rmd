@@ -42,7 +42,7 @@ geometry: margin=2.54cm
 
 1. Populate your README with the necessary information for the project. This should include your name, information about the course project, and information about the topic of interest. 
 
-2. Create folders for Data/Raw, Data/Processed, Code, and Output.
+2. Create folders for Data/Raw, Data/Processed, Code, and Output. ***do I do this in my desktop??***
 
 3. (You will create a metadata file for the dataset as part of assignment 11, due March 31). 
 
